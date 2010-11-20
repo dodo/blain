@@ -31,7 +31,7 @@ class Slots:
 class Blain(qt.QApplication):
     def __init__(self):
         qt.QApplication.__init__(self, sys.argv)
-        self.window = uic.loadUi("qt.ui")
+        self.window = uic.loadUi("window.ui")
         #self.window.messageWidget.hide()
         self.slots = Slots(self)
         self.slots.connect()
