@@ -28,14 +28,14 @@ class Slots:
 
     def connect(self):
         win = self.app.window
-        win.connect(win.sendButton, signal.clicked, self.sendMessage)
-        win.connect(win.messageEdit, signal.returnPressed, self.sendMessage)
-        win.connect(win.messageEdit, signal.textChanged, self.sendButtonController)
-        win.connect(win.actionQuit, signal.triggered, self.quit)
-        win.connect(win.actionPreferences, signal.triggered, self.showPreferences)
+        win.sendButton.clicked.connect(self.sendMessage)
+        win.messageEdit.returnPressed.connect(self.sendMessage)
+        win.messageEdit.textChanged.connect(self.sendButtonController)
+        win.actionQuit.triggered.connect(self.quit)
+        win.actionPreferences.triggered.connect(self.showPreferences)
         pref = self.app.preferences
-        pref.connect(pref, signal.hide, self.hidePreferences)
-        pref.connect(pref.buttonBox, signal.abstractbuttonclicked, self.abPref)
+        #pref.hide.connect
+        pref.buttonBox.clicked.connect(self.abPref)
 
     def sendMessage(self):
         txt = self.app.window.messageEdit.text()
@@ -53,12 +53,22 @@ class Slots:
         self.app.window.setEnabled(False)
         self.app.preferences.show()
 
-    def hidePreferences(self):
-        self.app.window.setEnabled(True)
-
     def abPref(self, button):
         print button
         self.app.preferences.hide()
+        self.app.window.setEnabled(True)
+
+
+
+class PreferencesDialog(qt.QDialog):
+    def __init__(self, app, *args):
+        qt.QDialog.__init__(self, *args)
+        self.app = app
+        self.content = uic.loadUi("preferences.ui", self)
+
+    def closeEvent(self, event):
+        print "lol", event
+        self.hide()
         self.app.window.setEnabled(True)
 
 
@@ -68,7 +78,7 @@ class Blain(qt.QApplication):
         qt.QApplication.__init__(self, sys.argv)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
-        self.preferences = uic.loadUi("preferences.ui")
+        self.preferences = PreferencesDialog(self)
         self.slots = Slots(self)
         self.slots.connect()
 
