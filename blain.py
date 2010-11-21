@@ -6,21 +6,6 @@ from PyQt4 import uic, Qt as qt
 
 from getFavicon import get_favicon
 
-class drug():
-    def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
-
-
-signal = drug(**dict(
-        clicked = qt.SIGNAL("clicked()"),
-        returnPressed = qt.SIGNAL("returnPressed()"),
-        textChanged = qt.SIGNAL("textChanged(const QString&)"),
-        triggered = qt.SIGNAL("triggered(bool)"),
-        hide = qt.SIGNAL("hide()"),
-        abstractbuttonclicked = qt.SIGNAL("clicked(QAbstractButton *)"),
-        ))
-
 
 
 class Slots:
@@ -32,11 +17,12 @@ class Slots:
         win.sendButton.clicked.connect(self.sendMessage)
         win.messageEdit.returnPressed.connect(self.sendMessage)
         win.messageEdit.textChanged.connect(self.sendButtonController)
-        win.actionQuit.triggered.connect(self.quit)
+        win.actionQuit.triggered.connect(self.app.quit)
         win.actionPreferences.triggered.connect(self.showPreferences)
         pref = self.app.preferences
         #pref.hide.connect
         pref.buttonBox.clicked.connect(self.abPref)
+        pref.listWidget.currentRowChanged.connect(pref.stackedWidget.setCurrentIndex)
 
     def sendMessage(self):
         txt = self.app.window.messageEdit.text()
@@ -46,9 +32,6 @@ class Slots:
 
     def sendButtonController(self, text):
         self.app.window.sendButton.setEnabled( text != "" )
-
-    def quit(self, _):
-        self.app.quit()
 
     def showPreferences(self, _):
         self.app.window.setEnabled(False)
