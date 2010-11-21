@@ -4,6 +4,7 @@ import sys
 
 from PyQt4 import uic, Qt as qt
 
+from getFavicon import get_favicon
 
 class drug():
     def __init__(self, **kwargs):
@@ -75,16 +76,35 @@ class PreferencesDialog(qt.QDialog):
 
 class Blain(qt.QApplication):
     def __init__(self):
+        print "loading …"
         qt.QApplication.__init__(self, sys.argv)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
         self.preferences = PreferencesDialog(self)
+
+        icon = get_favicon("http://identi.ca")
+        if icon:
+            icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
+            print "identica icon loaded?", not icon.isNull()
+            self.preferences.accountsTabWidget.setTabIcon(0, icon)
+        else: print "error while loading identica icon"
+        self.identicaIcon = icon
+
+        icon = get_favicon("http://twitter.com")
+        if icon:
+            icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
+            print "twitter icon loaded?", not icon.isNull()
+            self.preferences.accountsTabWidget.setTabIcon(1, icon)
+        else: print "error while loading twitter icon"
+        self.twitterIcon = icon
+
         self.slots = Slots(self)
         self.slots.connect()
 
     def run(self):
         self.window.show()
         self.window.statusBar.showMessage("Ready ...", 3000)
+        print "done."
         sys.exit(self.exec_())
 
     def addMessage(self, text):
