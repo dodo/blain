@@ -26,6 +26,7 @@ class Slots:
         win.messageEdit.returnPressed.connect(self.sendMessage)
         win.messageEdit.textChanged.connect(self.sendButtonController)
         win.actionUpdate_now.triggered.connect(self.updateAll)
+        win.actionMinimize.triggered.connect(win.hide)
         win.actionQuit.triggered.connect(self.app.quit)
         win.actionPreferences.triggered.connect(self.showPref)
         pref = self.app.preferences
@@ -33,6 +34,8 @@ class Slots:
         pref.buttonBox.rejected.connect(self.rejectPref)
         pref.buttonBox.button(qt.QDialogButtonBox.Apply).clicked.connect(self.saveSettings)
         pref.listWidget.currentRowChanged.connect(pref.stackedWidget.setCurrentIndex)
+        tray = self.app.trayIcon
+        tray.activated.connect(self.clickTray)
 
     def logStatus(self, msg, time=5000):
         print msg
@@ -100,6 +103,10 @@ class Slots:
     def acceptPref(self):
         self.hidePref()
         self.saveSettings()
+
+    def clickTray(self, reason):
+        if reason == qt.QSystemTrayIcon.Trigger:
+            self.app.window.setVisible(not self.app.window.isVisible())
 
 
 
