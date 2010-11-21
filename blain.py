@@ -4,6 +4,7 @@ import sys
 
 from PyQt4 import uic, Qt as qt
 
+from ascii import get_logo
 from getFavicon import get_favicon
 from microblogging import get_statuses
 
@@ -13,7 +14,6 @@ class drug():
     def __init__(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
-
 
 
 class Slots:
@@ -119,6 +119,7 @@ class PreferencesDialog(qt.QDialog):
     def closeEvent(self, event):
         self.hide()
         self.app.window.setEnabled(True)
+        event.ignore()
 
 
 
@@ -144,30 +145,7 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
-        self.appIcon = qt.QIcon(qt.QPixmap([
-                "16 16 5 1",
-                "  c None",
-                "# c black",
-                "x c gray25",
-                "o c gray50",
-                ". c white",
-                "                ",
-                "      xxxx      ",
-                "    xx####xx    ",
-                "   x##xxxx##x   ",
-                "  x#xx    xx#x  ",
-                "  x#x o  o x#x  ",
-                " x#x o.oo.o x#x ",
-                " x#x o.oo.o x#x ",
-                " x#x o....o x#x ",
-                " x#x o.ooo  x#x ",
-                "  x#xo.o   x#x  ",
-                "  x#xxo   xx#x  ",
-                "   x##xxxx##x   ",
-                "    xx####xx    ",
-                "      xxxx      ",
-                "                "
-            ]))
+        self.appIcon = qt.QIcon(qt.QPixmap(get_logo()))
 
         self.setWindowIcon(self.appIcon)
         self.messages = [];
