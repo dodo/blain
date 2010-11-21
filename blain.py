@@ -27,15 +27,17 @@ class Slots:
         win.messageEdit.textChanged.connect(self.sendButtonController)
         win.actionUpdate_now.triggered.connect(self.updateAll)
         win.actionQuit.triggered.connect(self.app.quit)
-        win.actionPreferences.triggered.connect(self.showPreferences)
+        win.actionPreferences.triggered.connect(self.showPref)
         pref = self.app.preferences
-        #pref.hide.connect
-        pref.buttonBox.clicked.connect(self.abPref)
+        pref.buttonBox.accepted.connect(self.acceptPref)
+        pref.buttonBox.rejected.connect(self.rejectPref)
+        pref.buttonBox.button(qt.QDialogButtonBox.Apply).clicked.connect(self.saveSettings)
         pref.listWidget.currentRowChanged.connect(pref.stackedWidget.setCurrentIndex)
 
     def logStatus(self, msg, time=5000):
         print msg
         self.app.window.statusBar.showMessage(msg, time)
+        self.app.window.statusBar.update()
 
     def sendMessage(self):
         txt = self.app.window.messageEdit.text()
@@ -46,17 +48,15 @@ class Slots:
     def sendButtonController(self, text):
         self.app.window.sendButton.setEnabled( text != "" )
 
-    def showPreferences(self, _):
+    def showPref(self, _):
         self.app.window.setEnabled(False)
         self.app.preferences.show()
 
-    def abPref(self, button):
-        print button
+    def hidePref(self):
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
 
-    def updateMicroblogging(self, service):
-        user = self.app.preferences.twitteridEdit.text()
+    def updateMicroblogging(self, user, service):
         if user != "":
             self.logStatus("===> Fetching %s on %s" % (user, service))
             updates = get_statuses(service, user)
@@ -72,14 +72,34 @@ class Slots:
             self.logStatus("Error: no user given!")
 
     def updateTwitter(self):
-        self.updateMicroblogging("twitter")
+        self.updateMicroblogging(self.app.preferences.twitteridEdit.text(),"twitter")
 
     def updateIdentica(self):
-        self.updateMicroblogging("identica")
+        self.updateMicroblogging(self.app.preferences.identicaidEdit.text(),"identica")
 
     def updateAll(self):
         self.updateIdentica()
         self.updateTwitter()
+
+    def saveSettings(self):
+        setts = self.app.settings
+        pref = self.app.preferences
+        setts.setValue("account/twitter/id", pref.twitteridEdit.text())
+        setts.setValue("account/identica/id", pref.identicaidEdit.text())
+
+    def loadSettings(self):
+        setts = self.app.settings
+        pref = self.app.preferences
+        pref.identicaidEdit.setText(setts.value("account/identica/id").toString())
+        pref.twitteridEdit.setText(setts.value("account/twitter/id").toString())
+
+    def rejectPref(self):
+        self.hidePref()
+        self.loadSettings()
+
+    def acceptPref(self):
+        self.hidePref()
+        self.saveSettings()
 
 
 
@@ -90,7 +110,6 @@ class PreferencesDialog(qt.QDialog):
         self.content = uic.loadUi("preferences.ui", self)
 
     def closeEvent(self, event):
-        print "lol", event
         self.hide()
         self.app.window.setEnabled(True)
 
@@ -98,29 +117,36 @@ class PreferencesDialog(qt.QDialog):
 
 class Blain(qt.QApplication):
     def __init__(self):
+        def load_icon(id, name, url):
+            icon, setts = None, self.settings
+            if not setts.contains('icon/'+name):
+                icon = get_favicon(url)
+                if icon:
+                    icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
+                    print name, "icon loaded?", not icon.isNull()
+                    if not icon.isNull():
+                        setts.setValue('icon/'+name, icon)
+                else: print "error while loading", name, "icon"
+            else:
+                icon = setts.value('icon/'+name, None)
+                if icon: icon = qt.QIcon(icon)
+            if icon:
+                self.preferences.accountsTabWidget.setTabIcon(id, icon)
+            return icon
+
         print "loading …"
         qt.QApplication.__init__(self, sys.argv)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
         self.preferences = PreferencesDialog(self)
+        self.settings = qt.QSettings("blain")
 
-        icon = get_favicon("http://identi.ca")
-        if icon:
-            icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
-            print "identica icon loaded?", not icon.isNull()
-            self.preferences.accountsTabWidget.setTabIcon(0, icon)
-        else: print "error while loading identica icon"
-        self.identicaIcon = icon
-
-        icon = get_favicon('http://twitter.com')
-        if icon:
-            icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
-            print "twitter icon loaded?", not icon.isNull()
-            self.preferences.accountsTabWidget.setTabIcon(1, icon)
-        else: print "error while loading twitter icon"
-        self.twitterIcon = icon
+        # load settings
+        self.identicaIcon = load_icon(0, "identica", "http://identi.ca")
+        self.twitterIcon  = load_icon(1, "twitter", "http://twitter.com")
 
         self.slots = Slots(self)
+        self.slots.loadSettings()
         self.slots.connect()
 
     def run(self):
