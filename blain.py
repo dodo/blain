@@ -5,6 +5,14 @@ import sys
 from PyQt4 import uic, Qt as qt
 
 from getFavicon import get_favicon
+from microblogging import get_statuses
+
+
+
+class drug():
+    def __init__(self, **kwargs):
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
 
 
 
@@ -17,12 +25,17 @@ class Slots:
         win.sendButton.clicked.connect(self.sendMessage)
         win.messageEdit.returnPressed.connect(self.sendMessage)
         win.messageEdit.textChanged.connect(self.sendButtonController)
+        win.actionUpdate_now.triggered.connect(self.updateAll)
         win.actionQuit.triggered.connect(self.app.quit)
         win.actionPreferences.triggered.connect(self.showPreferences)
         pref = self.app.preferences
         #pref.hide.connect
         pref.buttonBox.clicked.connect(self.abPref)
         pref.listWidget.currentRowChanged.connect(pref.stackedWidget.setCurrentIndex)
+
+    def logStatus(self, msg, time=5000):
+        print msg
+        self.app.window.statusBar.showMessage(msg, time)
 
     def sendMessage(self):
         txt = self.app.window.messageEdit.text()
@@ -41,6 +54,32 @@ class Slots:
         print button
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
+
+    def updateMicroblogging(self, service):
+        user = self.app.preferences.twitteridEdit.text()
+        if user != "":
+            self.logStatus("===> Fetching %s on %s" % (user, service))
+            updates = get_statuses(service, user)
+            if not updates:
+                self.logStatus("Error: no results!")
+            else:
+                self.logStatus("Amount of updates:  %i" % len(updates))
+                print
+                for update in updates:
+                    update = drug(**update)
+                    self.app.addMessage(update.text)
+        else:
+            self.logStatus("Error: no user given!")
+
+    def updateTwitter(self):
+        self.updateMicroblogging("twitter")
+
+    def updateIdentica(self):
+        self.updateMicroblogging("identica")
+
+    def updateAll(self):
+        self.updateIdentica()
+        self.updateTwitter()
 
 
 
@@ -73,7 +112,7 @@ class Blain(qt.QApplication):
         else: print "error while loading identica icon"
         self.identicaIcon = icon
 
-        icon = get_favicon("http://twitter.com")
+        icon = get_favicon('http://twitter.com')
         if icon:
             icon = qt.QIcon(qt.QPixmap.fromImage(qt.QImage.fromData(icon)))
             print "twitter icon loaded?", not icon.isNull()

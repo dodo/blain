@@ -10,7 +10,7 @@ HEADERS = {
 }
 
 
-def get_favicon(url, path=['favicon.ico', "favicon.png"]):
+def get_favicon(url, path=None):
     def guess():
         icon = None
         request = urllib2.Request(url, headers=HEADERS)
@@ -39,6 +39,8 @@ def get_favicon(url, path=['favicon.ico', "favicon.png"]):
             else:
                 return guess()
 
+    if path is None:
+        path = ['favicon.ico', "favicon.png"]
     if type(path) is not list:
         path = [path]
     if not url.endswith('/'):

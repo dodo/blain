@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>594</width>
-    <height>532</height>
+    <height>531</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,9 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTreeWidget" name="messageTable">
+      <property name="autoScrollMargin">
+       <number>16</number>
+      </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>
