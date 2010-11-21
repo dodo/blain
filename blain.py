@@ -117,6 +117,9 @@ class PreferencesDialog(qt.QDialog):
 
 class Blain(qt.QApplication):
     def __init__(self):
+        print "loading …"
+        qt.QApplication.__init__(self, sys.argv)
+
         def load_icon(id, name, url):
             icon, setts = None, self.settings
             if not setts.contains('icon/'+name):
@@ -134,12 +137,38 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
-        print "loading …"
-        qt.QApplication.__init__(self, sys.argv)
+        self.appIcon = qt.QIcon(qt.QPixmap([
+                "16 16 5 1",
+                "  c None",
+                "# c black",
+                "x c gray25",
+                "o c gray50",
+                ". c white",
+                "                ",
+                "      xxxx      ",
+                "    xx####xx    ",
+                "   x##xxxx##x   ",
+                "  x#xx    xx#x  ",
+                "  x#x o  o x#x  ",
+                " x#x o.oo.o x#x ",
+                " x#x o.oo.o x#x ",
+                " x#x o....o x#x ",
+                " x#x o.ooo  x#x ",
+                "  x#xo.o   x#x  ",
+                "  x#xxo   xx#x  ",
+                "   x##xxxx##x   ",
+                "    xx####xx    ",
+                "      xxxx      ",
+                "                "
+            ]))
+
+        self.setWindowIcon(self.appIcon)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
         self.preferences = PreferencesDialog(self)
         self.settings = qt.QSettings("blain")
+        self.trayIcon = qt.QSystemTrayIcon(self.appIcon, self)
+        self.trayIcon.show()
 
         # load settings
         self.identicaIcon = load_icon(0, "identica", "http://identi.ca")
