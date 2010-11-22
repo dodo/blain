@@ -2,44 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from datetime import datetime, timedelta
-import time
-import calendar
 
 from PyQt4 import uic, Qt as qt
 
+from parsing import parse_post
 from ascii import get_logo
 from getFavicon import get_favicon
 from microblogging import get_statuses
 
-
-
-class drug():
-    def __init__(self, **kwargs):
-        for k in kwargs:
-            setattr(self, k, kwargs[k])
-
-
-
-def parse_date(date):
-    # splitting into time and timezone
-    tz_str = date[-10:-5]
-
-    # calculating raw time
-    strf = "%a %b %d %H:%M:%S " +tz_str+ " %Y"
-    stime = time.strptime(date, strf)
-    stamp = calendar.timegm(stime)
-
-    # determine timezone delta
-    hours = int(tz_str[1:3])
-    minutes = int(tz_str[3:5])
-    tz_delta = timedelta(hours=hours, minutes=minutes)
-    if tz_str[0] == '+':
-        tz_delta *= -1
-
-    return datetime.fromtimestamp(stamp) + tz_delta
-
-
+urls = {
+    'identica': "http://identi.ca/",
+    'twitter':  "http://twitter.com/",
+    }
 
 class Slots:
     def __init__(self, app):
@@ -96,9 +70,8 @@ class Slots:
                 print
                 #print updates[0]
                 for update in updates:
-                    update = drug(**update)
-                    date = parse_date(update.created_at)
-                    self.app.addMessage(date, update.text, icon)
+                    update = parse_post(urls[service], update)
+                    self.app.addMessage(update.created_at, update.text, icon)
         else:
             self.logStatus("Error: no user given!")
 
@@ -219,6 +192,7 @@ class Blain(qt.QApplication):
         mt = self.window.messageTable
         msg = uic.loadUi("message.ui")
         msg.messageLabel.setText(text)
+        msg.messageLabel.setOpenExternalLinks(True)
         if icon:
             msg.serviceLabel.setPixmap(icon.pixmap(16,16))
         self.messages.append(msg)
