@@ -1,6 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import sys
+from datetime import datetime, timedelta
+import time
+import calendar
 
 from PyQt4 import uic, Qt as qt
 
@@ -14,6 +18,27 @@ class drug():
     def __init__(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
+
+
+
+def parse_date(date):
+    # splitting into time and timezone
+    tz_str = date[-10:-5]
+
+    # calculating raw time
+    strf = "%a %b %d %H:%M:%S " +tz_str+ " %Y"
+    stime = time.strptime(date, strf)
+    stamp = calendar.timegm(stime)
+
+    # determine timezone delta
+    hours = int(tz_str[1:3])
+    minutes = int(tz_str[3:5])
+    tz_delta = timedelta(hours=hours, minutes=minutes)
+    if tz_str[0] == '+':
+        tz_delta *= -1
+
+    return datetime.fromtimestamp(stamp) + tz_delta
+
 
 
 class Slots:
@@ -43,9 +68,10 @@ class Slots:
         self.app.window.statusBar.update()
 
     def sendMessage(self):
+        # TODO send message instead of printing it
         txt = self.app.window.messageEdit.text()
         if txt != "":
-            self.app.addMessage(txt)
+            self.app.addMessage(datetime.now(), txt)
             self.app.window.messageEdit.setText("")
 
     def sendButtonController(self, text):
@@ -59,7 +85,7 @@ class Slots:
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
 
-    def updateMicroblogging(self, user, service):
+    def updateMicroblogging(self, user, service, icon=None):
         if user != "":
             self.logStatus("===> Fetching %s on %s" % (user, service))
             updates = get_statuses(service, user)
@@ -68,17 +94,23 @@ class Slots:
             else:
                 self.logStatus("Amount of updates:  %i" % len(updates))
                 print
+                #print updates[0]
                 for update in updates:
                     update = drug(**update)
-                    self.app.addMessage(update.text)
+                    date = parse_date(update.created_at)
+                    self.app.addMessage(date, update.text, icon)
         else:
             self.logStatus("Error: no user given!")
 
     def updateTwitter(self):
-        self.updateMicroblogging(self.app.preferences.twitteridEdit.text(),"twitter")
+        self.updateMicroblogging(
+            self.app.preferences.twitteridEdit.text(), "twitter",
+            self.app.twitterIcon)
 
     def updateIdentica(self):
-        self.updateMicroblogging(self.app.preferences.identicaidEdit.text(),"identica")
+        self.updateMicroblogging(
+            self.app.preferences.identicaidEdit.text(), "identica",
+            self.app.identicaIcon)
 
     def updateAll(self):
         self.updateIdentica()
@@ -150,6 +182,7 @@ class Blain(qt.QApplication):
         self.setWindowIcon(self.appIcon)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
+        self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
         self.settings = qt.QSettings("blain")
         self.trayIcon = qt.QSystemTrayIcon(self.appIcon, self)
@@ -169,13 +202,17 @@ class Blain(qt.QApplication):
         print "done."
         sys.exit(self.exec_())
 
-    def addMessage(self, text):
+    def addMessage(self, time, text, icon=None):
+        time = time.strftime("%Y-%m-%d %H:%M:%S")
         mt = self.window.messageTable
         msg = uic.loadUi("message.ui")
         msg.messageLabel.setText(text)
+        if icon:
+            msg.serviceLabel.setPixmap(icon.pixmap(16,16))
         self.messages.append(msg)
         i = qt.QTreeWidgetItem(mt)
-        mt.setItemWidget(i, 0, msg)
+        i.setText(0, time)
+        mt.setItemWidget(i, 1, msg)
 
 
 if __name__ == "__main__":

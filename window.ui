@@ -32,11 +32,14 @@
       <property name="rootIsDecorated">
        <bool>false</bool>
       </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
       <property name="animated">
        <bool>true</bool>
       </property>
       <property name="columnCount">
-       <number>1</number>
+       <number>2</number>
       </property>
       <attribute name="headerVisible">
        <bool>false</bool>
@@ -62,6 +65,11 @@
       <attribute name="headerMinimumSectionSize">
        <number>42</number>
       </attribute>
+      <column>
+       <property name="text">
+        <string>time</string>
+       </property>
+      </column>
       <column>
        <property name="text">
         <string>1</string>
@@ -155,6 +163,9 @@
   <action name="actionUpdate_now">
    <property name="text">
     <string>update now</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
   <action name="actionMinimize">
