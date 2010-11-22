@@ -117,16 +117,26 @@ class Slots:
         self.updateTwitter()
 
     def saveSettings(self):
-        setts = self.app.settings
-        pref = self.app.preferences
+        app = self.app
+        setts = app.settings
+        pref = app.preferences
         setts.setValue("account/twitter/id", pref.twitteridEdit.text())
         setts.setValue("account/identica/id", pref.identicaidEdit.text())
+        setts.setValue("icon/isdark", pref.darkradioButton.isChecked())
+        ai = app.appIcon = qt.QIcon(qt.QPixmap(
+            get_logo(dark=setts.value("icon/isdark").toBool())))
+        app.setWindowIcon(ai)
+        app.trayIcon.setIcon(ai)
+
 
     def loadSettings(self):
         setts = self.app.settings
         pref = self.app.preferences
         pref.identicaidEdit.setText(setts.value("account/identica/id").toString())
         pref.twitteridEdit.setText(setts.value("account/twitter/id").toString())
+        b = setts.value("icon/isdark",True).toBool()
+        pref.darkradioButton.setChecked(b)
+        pref.lightradioButton.setChecked(not b)
 
     def rejectPref(self):
         self.hidePref()
@@ -146,7 +156,9 @@ class PreferencesDialog(qt.QDialog):
     def __init__(self, app, *args):
         qt.QDialog.__init__(self, *args)
         self.app = app
-        self.content = uic.loadUi("preferences.ui", self)
+        uic.loadUi("preferences.ui", self)
+        self.darkradioButton.setIcon(qt.QIcon(qt.QPixmap(get_logo())))
+        self.lightradioButton.setIcon(qt.QIcon(qt.QPixmap(get_logo(dark=False))))
 
     def closeEvent(self, event):
         self.hide()
@@ -177,14 +189,14 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
-        self.appIcon = qt.QIcon(qt.QPixmap(get_logo()))
-
-        self.setWindowIcon(self.appIcon)
         self.messages = [];
         self.window = uic.loadUi("window.ui")
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
-        self.settings = qt.QSettings("blain")
+        st = self.settings = qt.QSettings("blain")
+
+        self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
+        self.setWindowIcon(self.appIcon)
         self.trayIcon = qt.QSystemTrayIcon(self.appIcon, self)
         self.trayIcon.show()
 
@@ -216,4 +228,5 @@ class Blain(qt.QApplication):
 
 
 if __name__ == "__main__":
+    #print "logo in settings → light and dark theme"
     Blain().run()

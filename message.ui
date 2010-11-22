@@ -114,6 +114,13 @@ color:#ddd;</string>
             </spacer>
            </item>
            <item>
+            <widget class="QLabel" name="infoLabel">
+             <property name="text">
+              <string>info</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="repeatButton">
              <property name="minimumSize">
               <size>

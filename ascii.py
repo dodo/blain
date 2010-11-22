@@ -106,13 +106,15 @@ def get_number(n, char="#"):
     return list(map(lambda s:s.replace("#", char), [a+b for a,b in res]))
 
 
-def get_logo(n = None):
-    header = ["16 16 5 1",
-        "  c None",
-        "# c black",
-        "x c gray25",
-        "o c gray50",
-        ". c white"]
+def get_logo(n = None, dark=True):
+    header = ["16 16 5 1"]
+    chars = ["#","x","o","."]
+    color = ["black",
+        "gray25",
+        "gray50",
+        "white"]
+    if not dark: color.reverse()
+    color = ["  c None"] + [char+" c "+col for char,col in zip(chars,color)]
     background = [
         "                ",
         "      xxxx      ",
@@ -147,7 +149,7 @@ def get_logo(n = None):
             if char != " ":
                 s = background[y+4]
                 background[y+4] = s[:x+5] + char + s[x+6:]
-    return header + background
+    return header + color + background
 
 
 if __name__ == "__main__":
@@ -159,4 +161,4 @@ if __name__ == "__main__":
     print
     print "\n".join(get_logo())
     print
-    print "\n".join(get_logo(42))
+    print "\n".join(get_logo(42,False))
