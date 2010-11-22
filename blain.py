@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from datetime import datetime
 
 from PyQt4 import uic, Qt as qt
 
@@ -192,7 +193,6 @@ class Blain(qt.QApplication):
         mt = self.window.messageTable
         msg = uic.loadUi("message.ui")
         msg.messageLabel.setText(text)
-        msg.messageLabel.setOpenExternalLinks(True)
         if icon:
             msg.serviceLabel.setPixmap(icon.pixmap(16,16))
         self.messages.append(msg)
