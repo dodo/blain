@@ -13,7 +13,6 @@ class drug():
 
 rex = {
     'url': r'(?<!"|\()((https?|ftp|gopher|file)://(\w|\.|/|\(|\)|\?|=|%|&|:|#|_|-|~|\+)+)',
-    'link': r'((https?|ftp|gopher|file)://(\w|\.|/|\(|\)|\?|=|%|&|:|#|_|-|~|\+)+)',
     'person': r'@(\w+)',
     'hashtag': r'#(\w+)',
     'group': r'!(\w+)'
@@ -21,6 +20,19 @@ rex = {
 for k in rex:
     rex[k] = re.compile(rex[k])
 rex = drug(**rex)
+
+
+def services():
+    return {
+        'twitter': drug(
+            url = "http://twitter.com/",
+            parse = parse_twitter,
+        ),
+        'identica': drug(
+            url = "http://identi.ca/",
+            parse = parse_identica,
+        )
+}
 
 
 def parse_date(date):
@@ -52,14 +64,6 @@ def _parse_url(url):
     return (url, domain, rest)
 
 
-def parse_source(source):
-    match = rex.link.search(source)
-    if match:
-        source = match.group()
-        if source[:-1] != "/":
-            source = source + "/"
-    return source
-
 
 def parse_text(text, link):
     # parse link
@@ -79,13 +83,31 @@ def parse_text(text, link):
         lambda x: '!<a href="%s" class="group" rel="nofollow">%s</a>'\
              % (link + x.group()[1:], x.group()[1:]), text)
 
-#from pprint import pprint
-def parse_post(url, post):
-    #pprint(post)
-    post = drug(**post)
-    #post.source = parse_source(post.source)
-    post.text = parse_text(post.text, url)
-    post.created_at = parse_date(post.created_at)
+
+
+def parse_twitter(post):
+    post['user']['profile_url'] = services['twitter'].url + post['user']['screen_name']
     return post
 
+
+def parse_identica(post):
+    post['user']['profile_url'] = post['user']['statusnet_profile_url']
+    return post
+
+
+#from pprint import pprint
+def parse_post(service, post):
+    #pprint(post)
+    post = services[service].parse(post)
+    post = drug(**post)
+    post.user = drug(**post.user)
+    post.text = parse_text(post.text, services[service].url)
+    post.time = parse_date(post.created_at)
+    post.info = '%s (<a href="%s">%s</a>) via %s on %s' % (post.user.name,
+        post.user.profile_url, post.user.screen_name, post.source,
+        post.time.strftime("%a %d %b %Y %H:%M:%S"))
+    return post
+
+
+services = services()
 

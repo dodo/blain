@@ -121,6 +121,11 @@ color:#ddd;</string>
            </item>
            <item>
             <widget class="QLabel" name="infoLabel">
+             <property name="font">
+              <font>
+               <italic>true</italic>
+              </font>
+             </property>
              <property name="text">
               <string>info</string>
              </property>

@@ -11,10 +11,6 @@ from ascii import get_logo
 from getFavicon import get_favicon
 from microblogging import get_statuses
 
-urls = {
-    'identica': "http://identi.ca/",
-    'twitter':  "http://twitter.com/",
-    }
 
 class Slots:
     def __init__(self, app):
@@ -71,8 +67,8 @@ class Slots:
                 print
                 #print updates[0]
                 for update in updates:
-                    update = parse_post(urls[service], update)
-                    self.app.addMessage(update.created_at, update.text, icon)
+                    update = parse_post(service, update)
+                    self.app.addMessage(update, icon)
         else:
             self.logStatus("Error: no user given!")
 
@@ -188,11 +184,12 @@ class Blain(qt.QApplication):
         print "done."
         sys.exit(self.exec_())
 
-    def addMessage(self, time, text, icon=None):
-        time = time.strftime("%Y-%m-%d %H:%M:%S")
+    def addMessage(self, blob, icon=None):
+        time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
         mt = self.window.messageTable
         msg = uic.loadUi("message.ui")
-        msg.messageLabel.setText(text)
+        msg.messageLabel.setText(blob.text)
+        msg.infoLabel.setText(blob.info)
         if icon:
             msg.serviceLabel.setPixmap(icon.pixmap(16,16))
         self.messages.append(msg)
