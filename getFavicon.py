@@ -10,6 +10,15 @@ HEADERS = {
 }
 
 
+def get_image(url):
+    request = urllib2.Request(url, headers=HEADERS)
+    try:
+        return urllib2.urlopen(request).read()
+    except(urllib2.HTTPError, urllib2.URLError):
+        pass
+    return None
+
+
 def get_favicon(url, path=None):
     def guess():
         icon = None
@@ -22,11 +31,7 @@ def get_favicon(url, path=None):
             '//link[@rel="icon" or @rel="shortcut icon"]/@href'
         )
         if icon_path:
-            request = urllib2.Request(url + icon_path[:1], headers=HEADERS)
-            try:
-                return urllib2.urlopen(request).read()
-            except(urllib2.HTTPError, urllib2.URLError):
-                pass
+            return get_image(url + icon_path[:1])
         return None
 
     def try_next():
@@ -56,3 +61,5 @@ if __name__ == '__main__':
     print get_favicon('http://twitter.com')
     print "Idenci.ca:"
     print get_favicon('http://identi.ca')
+    #print "google:"
+    #print get_image("http://google.com/images/logos/ps_logo2.png")

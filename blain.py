@@ -10,7 +10,7 @@ from pager import Pager
 from ascii import get_logo
 from update import MicroblogThread
 from getFavicon import get_favicon
-from parsing import drug
+from parsing import drug, parse_image
 
 
 
@@ -156,6 +156,7 @@ class Blain(qt.QApplication):
             return icon
 
         self.messages = [];
+        self.avatar_cache = {};
         self.logStatus.connect(self._logStatus)
         self.addMessage.connect(self._addMessage)
 
@@ -163,7 +164,8 @@ class Blain(qt.QApplication):
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
         st = self.settings = qt.QSettings("blain", "blain")
-        self.pager = Pager(st)
+        self.avatars = qt.QSettings("blain", "avatars")
+        self.pager = Pager(self)
 
         self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
         self.setWindowIcon(self.appIcon)
@@ -199,6 +201,11 @@ class Blain(qt.QApplication):
         msg.infoLabel.setText(blob.info)
         if 'icon' in _blob:
             msg.serviceLabel.setPixmap(blob.icon.pixmap(16,16))
+        if 'imageinfo' in _blob:
+            image = parse_image(*([self]+blob.imageinfo))
+            if image[0]:
+                msg.avatarLabel.setPixmap(image[0])
+                self.avatar_cache[image[1]] = msg.avatarLabel
         self.messages.append(msg)
         i = qt.QTreeWidgetItem(mt)
         i.setText(0, time)

@@ -21,9 +21,10 @@ def get_page(service, user, count, page, opts={}):
 
 class Pager:
 
-    def __init__(self, globalsettings):
+    def __init__(self, app):
         print "TODO  order post in the last 3 pages by time after update"
-        self.settings = globalsettings
+        self.app = app
+        self.settings = app.settings
         self.users = QSettings("blain", "users")
 
 

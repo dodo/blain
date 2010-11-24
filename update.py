@@ -23,8 +23,7 @@ class MicroblogThread(QThread):
         self.app.logStatus.emit("Amount of updates:  %i" % len(updates))
         print
         for update in updates:
-            self.app.addMessage.emit(
-                {'time':update.time,'text':update.text,
-                 'info':update.info,'icon':self.icon})
+            update.icon = self.icon
+            self.app.addMessage.emit(update.__dict__)
         print self.service + " done."
         self.quit()

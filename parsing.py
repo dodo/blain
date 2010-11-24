@@ -4,6 +4,10 @@ import time
 import calendar
 from datetime import datetime, timedelta
 
+from PyQt4.Qt import QImage, QPixmap
+
+from getFavicon import get_image
+
 
 class drug():
     def __init__(self, **kwargs):
@@ -95,6 +99,20 @@ def parse_identica(post):
     return post
 
 
+def parse_image(app, service, user, url):
+    id = service+user
+    if id in app.avatar_cache:
+        return (app.avatar_cache[id].pixmap(), id)
+    if app.avatars.contains(id):
+        return (QPixmap(app.avatars.value(id)), id)
+    print "fetching %s profile image from %s" % (user, service)
+    image = get_image(str(url))
+    if image:
+        image = QPixmap.fromImage(QImage.fromData(image))
+        app.avatars.setValue(id, image)
+    return (image, id)
+
+
 #from pprint import pprint
 def parse_post(service, post):
     #pprint(post)
@@ -107,6 +125,7 @@ def parse_post(service, post):
         (post.user.url, post.user.name, post.user.profile_url,
          post.user.screen_name, post.source,
          post.time.strftime("%a %d %b %Y %H:%M:%S"))
+    post.imageinfo = [service,post.user.screen_name,post.user.profile_image_url]
     return post
 
 
