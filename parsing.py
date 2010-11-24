@@ -104,8 +104,9 @@ def parse_post(service, post):
     post.text = parse_text(post.text, services[service].url)
     post.time = parse_date(post.created_at)
     post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>) via %s on %s' % \
-        (post.url, post.user.name, post.user.profile_url, post.user.screen_name,
-         post.source, post.time.strftime("%a %d %b %Y %H:%M:%S"))
+        (post.user.url, post.user.name, post.user.profile_url,
+         post.user.screen_name, post.source,
+         post.time.strftime("%a %d %b %Y %H:%M:%S"))
     return post
 
 

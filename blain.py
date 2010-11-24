@@ -8,13 +8,16 @@ from PyQt4 import uic, Qt as qt
 
 from pager import Pager
 from ascii import get_logo
+from update import MicroblogThread
 from getFavicon import get_favicon
-from microblogging import get_statuses
+from parsing import drug
+
 
 
 class Slots:
     def __init__(self, app):
         self.app = app
+        self.threads = {}
 
     def connect(self):
         win = self.app.window
@@ -33,16 +36,12 @@ class Slots:
         tray = self.app.trayIcon
         tray.activated.connect(self.clickTray)
 
-    def logStatus(self, msg, time=5000):
-        print msg
-        self.app.window.statusBar.showMessage(msg, time)
-        self.app.window.statusBar.update()
-
     def sendMessage(self):
         # TODO send message instead of printing it
         txt = self.app.window.messageEdit.text()
         if txt != "":
-            self.app.addMessage(datetime.now(), txt)
+            self.app.addMessage.emit(
+                {'time':datetime.now(),'text':txt,'info':"test"})
             self.app.window.messageEdit.setText("")
 
     def sendButtonController(self, text):
@@ -56,27 +55,23 @@ class Slots:
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
 
-    def updateMicroblogging(self, user, service, icon=None):
-        if user == "":
-            return self.logStatus("Error: no user given! ("+service+")")
-        self.app.pager.update(service, user)
-        updates =  self.app.pager.load_page(service, user)
-        if not updates:
-           return self.logStatus("Error: no results! ("+service+")")
-        self.logStatus("Amount of updates:  %i" % len(updates))
-        print
-        for update in updates:
-            self.app.addMessage(update, icon)
+    def updateMicroblogging(self, service, text, icon):
+        if service in self.threads and self.threads[service].isRunning():
+            print "update %s already running" % service
+            return
+        self.threads[service] = MicroblogThread(self.app, text, service, icon)
+        self.threads[service].start()
 
     def updateTwitter(self):
-        self.updateMicroblogging(
-            self.app.preferences.twitteridEdit.text(), "twitter",
+        self.updateMicroblogging('twitter',
+            self.app.preferences.twitteridEdit.text(),
             self.app.twitterIcon)
 
     def updateIdentica(self):
-        self.updateMicroblogging(
-            self.app.preferences.identicaidEdit.text(), "identica",
+        self.updateMicroblogging('identica',
+            self.app.preferences.identicaidEdit.text(),
             self.app.identicaIcon)
+
 
     def updateAll(self):
         self.app.window.messageTable.clear()
@@ -135,6 +130,10 @@ class PreferencesDialog(qt.QDialog):
 
 
 class Blain(qt.QApplication):
+
+    logStatus = qt.pyqtSignal((str,), (str, int))
+    addMessage = qt.pyqtSignal(dict)
+
     def __init__(self):
         print "loading …"
         qt.QApplication.__init__(self, sys.argv)
@@ -157,6 +156,9 @@ class Blain(qt.QApplication):
             return icon
 
         self.messages = [];
+        self.logStatus.connect(self._logStatus)
+        self.addMessage.connect(self._addMessage)
+
         self.window = uic.loadUi("window.ui")
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
@@ -182,14 +184,21 @@ class Blain(qt.QApplication):
         print "done."
         sys.exit(self.exec_())
 
-    def addMessage(self, blob, icon=None):
+    def _logStatus(self, msg, time=5000):
+        print msg
+        self.window.statusBar.showMessage(msg, time)
+        self.window.statusBar.update()
+
+    def _addMessage(self, _blob):
+        _blob = dict([(str(k),_blob[k]) for k in _blob])
+        blob = drug(**_blob)
         time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
         mt = self.window.messageTable
         msg = uic.loadUi("message.ui")
         msg.messageLabel.setText(blob.text)
         msg.infoLabel.setText(blob.info)
-        if icon:
-            msg.serviceLabel.setPixmap(icon.pixmap(16,16))
+        if 'icon' in _blob:
+            msg.serviceLabel.setPixmap(blob.icon.pixmap(16,16))
         self.messages.append(msg)
         i = qt.QTreeWidgetItem(mt)
         i.setText(0, time)

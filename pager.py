@@ -1,5 +1,5 @@
 
-from PyQt4 import Qt as qt
+from PyQt4.Qt import QSettings
 
 from json_hack import json
 from parsing import parse_post
@@ -24,7 +24,7 @@ class Pager:
     def __init__(self, globalsettings):
         print "TODO  order post in the last 3 pages by time after update"
         self.settings = globalsettings
-        self.users = qt.QSettings("blain", "users")
+        self.users = QSettings("blain", "users")
 
 
     def get_page_count(self, service, user):
@@ -41,13 +41,14 @@ class Pager:
 
         pagenr, _ = self.users.value("pages/"+service+user, 1).toInt()
         last = self.users.value("lastids/"+user, "").toString()
-        setts = qt.QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
+        setts = QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
         count, _ = setts.value("id/count", 0).toInt()
 
         servicecount = api_call(service, 'users/show', {'id': user})['statuses_count']
         while servicecount > 0:
-            print "%i Fetching page %i, %i updates remaining (%s)" % (n, page, servicecount, service)
             fetch_count = min(n==1 and int(step/10) or step, servicecount)
+            print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
+                (n, fetch_count, page, servicecount, service)
             new_statuses = get_page(service,user,fetch_count,page,page == 2 and _id and {'max_id':_id} or {})
             stop = False
             if n > 1:
@@ -69,7 +70,7 @@ class Pager:
                         setts.setValue("id/count", count)
                         count = 0
                         pagenr += 1
-                        setts = qt.QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
+                        setts = QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
                 elif n != 1 and n > 2:
                     print "found known id. stopping"
                     stop = True
@@ -85,7 +86,7 @@ class Pager:
     def load_page(self, service, user, page=1):
         if not service or not user or page > self.get_page_count(service, user):
             return None
-        setts = qt.QSettings("blain", "%s-%s-%i"%(user, service, page))
+        setts = QSettings("blain", "%s-%s-%i"%(user, service, page))
         count, _ = setts.value("id/count", 0).toInt()
         page = []
         for n in range(count):
