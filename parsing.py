@@ -103,9 +103,9 @@ def parse_post(service, post):
     post.user = drug(**post.user)
     post.text = parse_text(post.text, services[service].url)
     post.time = parse_date(post.created_at)
-    post.info = '%s (<a href="%s">%s</a>) via %s on %s' % (post.user.name,
-        post.user.profile_url, post.user.screen_name, post.source,
-        post.time.strftime("%a %d %b %Y %H:%M:%S"))
+    post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>) via %s on %s' % \
+        (post.url, post.user.name, post.user.profile_url, post.user.screen_name,
+         post.source, post.time.strftime("%a %d %b %Y %H:%M:%S"))
     return post
 
 

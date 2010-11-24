@@ -6,7 +6,7 @@ from datetime import datetime
 
 from PyQt4 import uic, Qt as qt
 
-from parsing import parse_post
+from pager import Pager
 from ascii import get_logo
 from getFavicon import get_favicon
 from microblogging import get_statuses
@@ -57,20 +57,16 @@ class Slots:
         self.app.window.setEnabled(True)
 
     def updateMicroblogging(self, user, service, icon=None):
-        if user != "":
-            self.logStatus("===> Fetching %s on %s" % (user, service))
-            updates = get_statuses(service, user)
-            if not updates:
-                self.logStatus("Error: no results!")
-            else:
-                self.logStatus("Amount of updates:  %i" % len(updates))
-                print
-                #print updates[0]
-                for update in updates:
-                    update = parse_post(service, update)
-                    self.app.addMessage(update, icon)
-        else:
-            self.logStatus("Error: no user given!")
+        if user == "":
+            return self.logStatus("Error: no user given! ("+service+")")
+        self.app.pager.update(service, user)
+        updates =  self.app.pager.load_page(service, user)
+        if not updates:
+           return self.logStatus("Error: no results! ("+service+")")
+        self.logStatus("Amount of updates:  %i" % len(updates))
+        print
+        for update in updates:
+            self.app.addMessage(update, icon)
 
     def updateTwitter(self):
         self.updateMicroblogging(
@@ -83,6 +79,7 @@ class Slots:
             self.app.identicaIcon)
 
     def updateAll(self):
+        self.app.window.messageTable.clear()
         self.updateIdentica()
         self.updateTwitter()
 
@@ -163,7 +160,8 @@ class Blain(qt.QApplication):
         self.window = uic.loadUi("window.ui")
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
-        st = self.settings = qt.QSettings("blain")
+        st = self.settings = qt.QSettings("blain", "blain")
+        self.pager = Pager(st)
 
         self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
         self.setWindowIcon(self.appIcon)
@@ -199,5 +197,4 @@ class Blain(qt.QApplication):
 
 
 if __name__ == "__main__":
-    #print "logo in settings → light and dark theme"
     Blain().run()
