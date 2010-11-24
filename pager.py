@@ -2,7 +2,7 @@
 from PyQt4.Qt import QSettings
 
 from json_hack import json
-from parsing import parse_post
+from parsing import parse_post, parse_date
 from microblogging import api_call
 
 MAX_PAGE_COUNT = 200
@@ -53,15 +53,15 @@ class Pager:
             stop = False
             if n > 1:
                 servicecount -= len(new_statuses)
-            #new_statuses.reverse()
+            new_statuses.sort(key=lambda i: parse_date(i['created_at']))
             for status in new_statuses:
                 _id = str(status['id'])
                 id = service + _id
-                print id
                 if id == last:
-                    print "found lastid. stopping"
+                    print id, "found lastid. stopping"
                     stop = True
                 if not setts.contains("post/"+id):
+                    print id
                     dump = json.dumps(status)
                     setts.setValue("post/"+id, dump)
                     setts.setValue("id/%i"%count, id)
@@ -71,8 +71,8 @@ class Pager:
                         count = 0
                         pagenr += 1
                         setts = QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
-                elif n != 1 and n > 2:
-                    print "found known id. stopping"
+                else:
+                    print id, "(found)"
                     stop = True
             n += 1
             if stop: break
