@@ -8,7 +8,7 @@ from PyQt4 import uic, Qt as qt
 
 from pager import Pager
 from ascii import get_logo
-from update import MicroblogThread
+from update import MicroblogThread, UserStatusThread
 from getFavicon import get_favicon
 from parsing import drug, parse_image
 
@@ -28,6 +28,7 @@ class Slots:
         win.actionMinimize.triggered.connect(win.hide)
         win.actionQuit.triggered.connect(self.app.quit)
         win.actionPreferences.triggered.connect(self.showPref)
+        win.actionSilence.triggered.connect(self.test)
         pref = self.app.preferences
         pref.buttonBox.accepted.connect(self.acceptPref)
         pref.buttonBox.rejected.connect(self.rejectPref)
@@ -74,6 +75,7 @@ class Slots:
 
 
     def updateAll(self):
+        self.app.messages = []
         self.app.window.messageTable.clear()
         self.updateIdentica()
         self.updateTwitter()
@@ -112,6 +114,15 @@ class Slots:
         if reason == qt.QSystemTrayIcon.Trigger:
             self.app.window.setVisible(not self.app.window.isVisible())
 
+    def test(self):
+        from update import get_friends, get_user
+        from pprint import pprint
+        #pprint(get_friends('twitter', 'dodothelast'))
+        #pprint(get_friends('identica', 'dodothelast'))
+        pprint(get_user('twitter', 'dodothelast'))
+        pprint(get_user('identica', 'dodothelast'))
+        print "done."
+
 
 
 class PreferencesDialog(qt.QDialog):
@@ -133,6 +144,7 @@ class Blain(qt.QApplication):
 
     logStatus = qt.pyqtSignal((str,), (str, int))
     addMessage = qt.pyqtSignal(dict)
+    updateUser = qt.pyqtSignal(dict)
 
     def __init__(self):
         print "loading …"
@@ -155,10 +167,12 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
+        self.threads = {};
         self.messages = [];
         self.avatar_cache = {};
         self.logStatus.connect(self._logStatus)
         self.addMessage.connect(self._addMessage)
+        self.updateUser.connect(self._updateUser)
 
         self.window = uic.loadUi("window.ui")
         self.window.messageTable.hideColumn(0)
@@ -210,6 +224,22 @@ class Blain(qt.QApplication):
         i = qt.QTreeWidgetItem(mt)
         i.setText(0, time)
         mt.setItemWidget(i, 1, msg)
+
+    def _updateUser(self, _blob):
+        _blob = dict([(str(k),_blob[k]) for k in _blob])
+        for k in ['user', 'service']:
+            _blob[k] = str(_blob[k])
+        blob = drug(**_blob)
+        id = blob.service+blob.user
+        if id in self.threads and self.threads[id].isRunning():
+            print blob.user, "thread still running. (%s)" % blob.service
+        else:
+            if 'icon' not in _blob:
+                blob.icon = None
+            self.threads[id] = UserStatusThread(
+                self, blob.user, blob.service, blob.icon)
+            self.threads[id].start()
+
 
 
 if __name__ == "__main__":

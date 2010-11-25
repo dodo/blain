@@ -37,6 +37,7 @@ class Pager:
             return None
         n = 1
         _id = ''
+        trys = 0
         page = 1
         step = 200
 
@@ -49,11 +50,13 @@ class Pager:
         while servicecount > 0:
             fetch_count = min(n==1 and int(step/10) or step, servicecount)
             print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
-                (n, fetch_count, page, servicecount, service)
+                (n, fetch_count, page, servicecount, service),"[%i]"%trys
             new_statuses = get_page(service,user,fetch_count,page,page == 2 and _id and {'max_id':_id} or {})
             stop = False
             if n > 1:
                 servicecount -= len(new_statuses)
+                if len(new_statuses) == 0:
+                    trys += 1
             new_statuses.sort(key=lambda i: parse_date(i['created_at']))
             for status in new_statuses:
                 _id = str(status['id'])
@@ -76,7 +79,7 @@ class Pager:
                     print id, "(found)"
                     stop = True
             n += 1
-            if stop: break
+            if stop or trys > 3: break
             if fetch_count != int(step/10):
                 page += 1
         setts.setValue("id/count", count)
