@@ -127,6 +127,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionUpdate_view"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -207,6 +208,11 @@
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences …</string>
+   </property>
+  </action>
+  <action name="actionUpdate_view">
+   <property name="text">
+    <string>update view</string>
    </property>
   </action>
  </widget>

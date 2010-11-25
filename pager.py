@@ -1,4 +1,6 @@
 
+from traceback import print_exc
+
 from PyQt4.Qt import QSettings
 
 from json_hack import json
@@ -16,7 +18,11 @@ def get_page(service, user, count, page, opts={}):
             'include_rts': 'true', #get all 200 tweets from twitter
             }
     options.update(opts)
-    return api_call(service, 'statuses/user_timeline', options)
+    try:
+        return api_call(service, 'statuses/user_timeline', options)
+    except:
+        print_exc()
+        return []
 
 
 class Pager:
@@ -41,12 +47,17 @@ class Pager:
         page = 1
         step = 200
 
+        new_statuses = None
         pagenr, _ = self.users.value("pages/"+service+user, 1).toInt()
         last = self.users.value("lastids/"+user, "").toString()
         setts = QSettings("blain", "%s-%s-%i"%(user, service, pagenr))
         count, _ = setts.value("id/count", 0).toInt()
 
-        servicecount = api_call(service, 'users/show', {'id': user})['statuses_count']
+        try:
+            servicecount = api_call(service, 'users/show', {'id': user})['statuses_count']
+        except:
+            print_exc()
+            return
         while servicecount > 0:
             fetch_count = min(n==1 and int(step/10) or step, servicecount)
             print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
@@ -83,7 +94,8 @@ class Pager:
             if fetch_count != int(step/10):
                 page += 1
         setts.setValue("id/count", count)
-        self.users.setValue("lastid/"+user, service+str(new_statuses[0]['id']))
+        if new_statuses:
+            self.users.setValue("lastid/"+user, service+str(new_statuses[0]['id']))
         self.users.setValue("pages/"+service+user, pagenr)
 
 

@@ -1,4 +1,6 @@
 
+from traceback import print_exc
+
 from PyQt4.Qt import QThread, QSettings
 
 from microblogging import api_call
@@ -17,10 +19,12 @@ def pages():
         }
 
 
+
 class UserStatusThread(QThread):
 
-    def __init__(self, app, user, service, icon=None):
+    def __init__(self, app, id, user, service, icon=None):
         QThread.__init__(self, app)
+        self.id = id
         self.app = app
         self.icon = icon
         self.user = user
@@ -29,18 +33,23 @@ class UserStatusThread(QThread):
     def run(self):
         if self.user == "":
             self.app.logStatus.emit("Error: no user given! ("+self.service+")")
+            self.app.killThread.emit(self.id)
             self.quit()
+            return
         self.app.pager.update(self.service, self.user)
         updates =  self.app.pager.load_page(self.service, self.user)
         if not updates:
             self.app.logStatus.emit("Error: no results! ("+self.service+")")
+            self.app.killThread.emit(self.id)
             self.quit()
-        self.app.logStatus.emit("Amount of updates:  %i" % len(updates))
-        print
-        for update in updates[:10]:
+            return
+        self.app.logStatus.emit("%i updates on %s from %s" % \
+            (len(updates), self.service, self.user))
+        for update in updates:
             update.icon = self.icon
             self.app.addMessage.emit(update.__dict__)
         print self.service + " done."
+        self.app.killThread.emit(self.id)
         self.quit()
 
 
@@ -69,7 +78,11 @@ def get_friends(service, user, page):
             'cursor': page,
             'id': user,
             }
-    return pages[service].get(api_call(service, 'statuses/friends', options))
+    try:
+        return pages[service].get(api_call(service, 'statuses/friends', options))
+    except:
+        print_exc()
+        return []
 
 
 def next_page(service, prev, result):
@@ -87,14 +100,21 @@ class MicroblogThread(QThread):
         self.service = service
         self.friends = QSettings("blain", "%s-%s-friends" % (user, service))
 
+
     def run(self):
         if not self.service or not self.user:
-            return self.quit()
+            self.quit()
+            return
         trys = 0
         page = -1
         new_friends = None
-        friendscount = api_call(self.service, 'users/show',
-            {'id': self.user})['friends_count']
+        try:
+            friendscount = api_call(self.service, 'users/show',
+                {'id': self.user})['friends_count']
+        except:
+            print_exc()
+            self.end()
+            return
         while friendscount > 0:
             page = next_page(self.service, page, new_friends)
             print "Fetching from friends page %i, %i updates remaining (%s)" % \
@@ -114,7 +134,11 @@ class MicroblogThread(QThread):
                 dump = json.dumps(friend)
                 self.friends.setValue(id, dump)
             if stop or trys > 3: break
+            self.yieldCurrentThread()
         print "friends list up-to-date. (%s)" % self.service
+        self.end()
+
+    def end(self):
         # update all users
         for friend in self.friends.allKeys():
             opts = {'user':friend, 'service':self.service}
@@ -123,7 +147,6 @@ class MicroblogThread(QThread):
             self.app.updateUser.emit(opts)
         print "done."
         self.quit()
-
 
 pages = pages()
 

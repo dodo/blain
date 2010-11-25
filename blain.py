@@ -143,6 +143,7 @@ class PreferencesDialog(qt.QDialog):
 class Blain(qt.QApplication):
 
     logStatus = qt.pyqtSignal((str,), (str, int))
+    killThread = qt.pyqtSignal(str)
     addMessage = qt.pyqtSignal(dict)
     updateUser = qt.pyqtSignal(dict)
 
@@ -167,11 +168,13 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
-        self.threads = {};
-        self.messages = [];
-        self.avatar_cache = {};
+        self.threads = {}
+        self.messages = []
+        self.avatar_cache = {}
+        self.threadwatcher = None
         self.logStatus.connect(self._logStatus)
         self.addMessage.connect(self._addMessage)
+        self.killThread.connect(self._killThread)
         self.updateUser.connect(self._updateUser)
 
         self.window = uic.loadUi("window.ui")
@@ -193,6 +196,7 @@ class Blain(qt.QApplication):
         self.slots = Slots(self)
         self.slots.loadSettings()
         self.slots.connect()
+        self.window.actionUpdate_view.triggered.connect(self.updateMessageView)
 
     def run(self):
         self.window.show()
@@ -200,30 +204,50 @@ class Blain(qt.QApplication):
         print "done."
         sys.exit(self.exec_())
 
+    def updateMessageView(self, maxcount = 200):
+        mt = self.window.messageTable
+        self.avatar_cache = {}
+        mt.clear()
+        if len(self.messages) < 200:
+            self.messages.sort(key=lambda m:m['time'])
+        for _blob in self.messages[-maxcount:]:
+            blob = drug(**_blob)
+            time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
+            msg = uic.loadUi("message.ui") # TODO chache this
+            msg.messageLabel.setText(blob.text)
+            msg.infoLabel.setText(blob.info)
+            if 'icon' in _blob:
+                msg.serviceLabel.setPixmap(blob.icon.pixmap(16,16))
+            if 'imageinfo' in _blob:
+                image = parse_image(*([self]+blob.imageinfo))
+                if image[0]:
+                    msg.avatarLabel.setPixmap(image[0])
+                    self.avatar_cache[image[1]] = msg.avatarLabel
+            i = qt.QTreeWidgetItem(mt)
+            i.setText(0, time)
+            mt.setItemWidget(i, 1, msg)
+
     def _logStatus(self, msg, time=5000):
         print msg
         self.window.statusBar.showMessage(msg, time)
         self.window.statusBar.update()
 
-    def _addMessage(self, _blob):
-        _blob = dict([(str(k),_blob[k]) for k in _blob])
-        blob = drug(**_blob)
-        time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
-        mt = self.window.messageTable
-        msg = uic.loadUi("message.ui")
-        msg.messageLabel.setText(blob.text)
-        msg.infoLabel.setText(blob.info)
-        if 'icon' in _blob:
-            msg.serviceLabel.setPixmap(blob.icon.pixmap(16,16))
-        if 'imageinfo' in _blob:
-            image = parse_image(*([self]+blob.imageinfo))
-            if image[0]:
-                msg.avatarLabel.setPixmap(image[0])
-                self.avatar_cache[image[1]] = msg.avatarLabel
-        self.messages.append(msg)
-        i = qt.QTreeWidgetItem(mt)
-        i.setText(0, time)
-        mt.setItemWidget(i, 1, msg)
+    def _addMessage(self, blob):
+        blob = dict([(str(k),blob[k]) for k in blob])
+        self.messages.append(blob)
+        if len(self.messages) > 200:
+            self.messages.sort(key=lambda m:m['time'])
+            self.messages.pop(0)
+
+    def _killThread(self, id):
+        id = str(id)
+        if id in self.threads:
+            del self.threads[id]
+        print len(self.threads),"threads still running:  ",", ".join(self.threads.keys()),"-"*40
+        if not self.threads:
+            self.updateMessageView()
+        else:
+            self.updateMessageView(10)
 
     def _updateUser(self, _blob):
         _blob = dict([(str(k),_blob[k]) for k in _blob])
@@ -237,7 +261,7 @@ class Blain(qt.QApplication):
             if 'icon' not in _blob:
                 blob.icon = None
             self.threads[id] = UserStatusThread(
-                self, blob.user, blob.service, blob.icon)
+                self, id, blob.user, blob.service, blob.icon)
             self.threads[id].start()
 
 
