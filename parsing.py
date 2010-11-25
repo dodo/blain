@@ -4,7 +4,7 @@ import time
 import calendar
 from datetime import datetime, timedelta
 
-from PyQt4.Qt import QImage, QPixmap
+from PyQt4 import Qt as qt
 
 from getFavicon import get_image
 
@@ -104,11 +104,12 @@ def parse_image(app, service, user, url):
     if id in app.avatar_cache:
         return (app.avatar_cache[id].pixmap(), id)
     if app.avatars.contains(id):
-        return (QPixmap(app.avatars.value(id)), id)
+        return (qt.QPixmap(app.avatars.value(id)), id)
     print "fetching %s profile image from %s" % (user, service)
     image = get_image(str(url))
     if image:
-        image = QPixmap.fromImage(QImage.fromData(image))
+        image = qt.QPixmap.fromImage(qt.QImage.fromData(image)).scaled(32,32,
+            qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
         app.avatars.setValue(id, image)
     return (image, id)
 
