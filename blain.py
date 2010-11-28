@@ -2,15 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from os.path import dirname, join as pathjoin
 from datetime import datetime
 
 from PyQt4 import uic, Qt as qt
+from sqlalchemy import desc
 
+from db import Database
 from pager import Pager
 from ascii import get_logo
+from models import setup_models
 from update import MicroblogThread, UserStatusThread
 from getFavicon import get_favicon
-from parsing import drug, parse_image
+from parsing import drug, parse_image, prepare_post
 
 
 
@@ -44,6 +48,7 @@ class Slots:
             self.app.addMessage.emit(
                 {'time':datetime.now(),'text':txt,'info':"test"})
             self.app.window.messageEdit.setText("")
+            self.app.updateMessageView()
 
     def sendButtonController(self, text):
         self.app.window.sendButton.setEnabled( text != "" )
@@ -56,27 +61,23 @@ class Slots:
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
 
-    def updateMicroblogging(self, service, text, icon):
+    def updateMicroblogging(self, service, text):
         if service in self.threads and self.threads[service].isRunning():
             print "update %s already running" % service
             return
-        self.threads[service] = MicroblogThread(self.app, text, service, icon)
+        self.threads[service] = MicroblogThread(self.app, text, service)
         self.threads[service].start()
 
     def updateTwitter(self):
         self.updateMicroblogging('twitter',
-            self.app.preferences.twitteridEdit.text(),
-            self.app.twitterIcon)
+            self.app.preferences.twitteridEdit.text())
 
     def updateIdentica(self):
         self.updateMicroblogging('identica',
-            self.app.preferences.identicaidEdit.text(),
-            self.app.identicaIcon)
+            self.app.preferences.identicaidEdit.text())
 
 
     def updateAll(self):
-        self.app.messages = []
-        self.app.window.messageTable.clear()
         self.updateIdentica()
         self.updateTwitter()
 
@@ -168,8 +169,8 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
+        self.icons = {}
         self.threads = {}
-        self.messages = []
         self.avatar_cache = {}
         self.threadwatcher = None
         self.logStatus.connect(self._logStatus)
@@ -180,9 +181,13 @@ class Blain(qt.QApplication):
         self.window = uic.loadUi("window.ui")
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
+
         st = self.settings = qt.QSettings("blain", "blain")
         self.avatars = qt.QSettings("blain", "avatars")
         self.pager = Pager(self)
+        db = self.db = Database(location =
+            pathjoin(dirname(str(st.fileName())),"blain.sqlite"))
+        setup_models(db)
 
         self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
         self.setWindowIcon(self.appIcon)
@@ -190,8 +195,8 @@ class Blain(qt.QApplication):
         self.trayIcon.show()
 
         # load settings
-        self.identicaIcon = load_icon(0, "identica", "http://identi.ca")
-        self.twitterIcon  = load_icon(1, "twitter", "http://twitter.com")
+        self.icons['identica'] = load_icon(0, "identica", "http://identi.ca")
+        self.icons['twitter']  = load_icon(1, "twitter", "http://twitter.com")
 
         self.slots = Slots(self)
         self.slots.loadSettings()
@@ -204,21 +209,23 @@ class Blain(qt.QApplication):
         print "done."
         sys.exit(self.exec_())
 
-    def updateMessageView(self, maxcount = 200):
+    def updateMessageView(self, maxcount = 0):
+        maxcount = maxcount or 200
         mt = self.window.messageTable
         self.avatar_cache = {}
         mt.clear()
-        if len(self.messages) < 200:
-            self.messages.sort(key=lambda m:m['time'])
-        for _blob in self.messages[-maxcount:]:
-            blob = drug(**_blob)
+        Post = self.db.Post
+        messages = Post.find().order_by(desc(Post.time)).limit(maxcount).all()
+        print "* update message view", len(messages)
+        for _blob in messages:
+            blob = prepare_post(_blob.__dict__)
             time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
             msg = uic.loadUi("message.ui") # TODO chache this
             msg.messageLabel.setText(blob.text)
             msg.infoLabel.setText(blob.info)
-            if 'icon' in _blob:
-                msg.serviceLabel.setPixmap(blob.icon.pixmap(16,16))
-            if 'imageinfo' in _blob:
+            if blob.service in self.icons:
+                msg.serviceLabel.setPixmap(self.icons[blob.service].pixmap(16,16))
+            if 'imageinfo' in blob.__dict__:
                 image = parse_image(*([self]+blob.imageinfo))
                 if image[0]:
                     msg.avatarLabel.setPixmap(image[0])
@@ -234,16 +241,18 @@ class Blain(qt.QApplication):
 
     def _addMessage(self, blob):
         blob = dict([(str(k),blob[k]) for k in blob])
-        self.messages.append(blob)
-        if len(self.messages) > 200:
-            self.messages.sort(key=lambda m:m['time'])
-            self.messages.pop(0)
+        for k in ['text','plain','source','service','user_id','user_url',
+                'user_name','user_profile_url','profile_image_url']:
+            if blob[k]:
+                blob[k] = unicode(blob[k])
+        self.db.Post(**blob).add()
 
     def _killThread(self, id):
         id = str(id)
         if id in self.threads:
             del self.threads[id]
         print len(self.threads),"threads still running:  ",", ".join(self.threads.keys()),"-"*40
+        self.db.session.commit()
         if not self.threads:
             self.updateMessageView()
         else:
@@ -258,10 +267,12 @@ class Blain(qt.QApplication):
         if id in self.threads and self.threads[id].isRunning():
             print blob.user, "thread still running. (%s)" % blob.service
         else:
-            if 'icon' not in _blob:
-                blob.icon = None
+            Post = self.db.Post
+            knownids = Post.find(Post.pid).order_by(desc(Post.time))\
+                .filter_by(user_id = blob.user).limit(2000).all()
+            knownids = list(map(lambda i:i.pid, knownids))
             self.threads[id] = UserStatusThread(
-                self, id, blob.user, blob.service, blob.icon)
+                self, id, blob.user, blob.service, knownids)
             self.threads[id].start()
 
 

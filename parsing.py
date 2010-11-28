@@ -114,19 +114,30 @@ def parse_image(app, service, user, url):
     return (image, id)
 
 
-#from pprint import pprint
 def parse_post(service, post):
-    #pprint(post)
     post = services[service].parse(post)
     post = drug(**post)
     post.user = drug(**post.user)
-    post.text = parse_text(post.text, services[service].url)
-    post.time = parse_date(post.created_at)
+    return {
+        'pid':post.id,
+        'text':parse_text(post.text, services[service].url),
+        'plain':post.text,
+        'source':post.source,
+        'time':parse_date(post.created_at),
+        'user_id':post.user.screen_name,
+        'service':service,
+        'user_url':post.user.url,
+        'user_name':post.user.name,
+        'user_profile_url':post.user.profile_url,
+        'profile_image_url':post.user.profile_image_url}
+
+
+def prepare_post(blob):
+    post = drug(**blob)
     post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>) via %s on %s' % \
-        (post.user.url, post.user.name, post.user.profile_url,
-         post.user.screen_name, post.source,
-         post.time.strftime("%a %d %b %Y %H:%M:%S"))
-    post.imageinfo = [service,post.user.screen_name,post.user.profile_image_url]
+        (post.user_url, post.user_name, post.user_profile_url,
+         post.user_id, post.source, post.time.strftime("%a %d %b %Y %H:%M:%S"))
+    post.imageinfo = [post.service, post.user_id, post.profile_image_url]
     return post
 
 

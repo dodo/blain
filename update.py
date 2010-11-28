@@ -5,7 +5,10 @@ from PyQt4.Qt import QThread, QSettings
 
 from microblogging import api_call
 from json_hack import json
-from parsing import drug
+from parsing import drug, parse_post, parse_date
+
+
+MAX_PAGE_COUNT = 200
 
 
 def pages():
@@ -19,39 +22,92 @@ def pages():
         }
 
 
+def get_page(service, user, count, page, opts={}):
+    options = {
+            'page': page,
+            'count': count,
+            'id': user,
+            'include_rts': 'true', #get all 200 tweets from twitter
+            }
+    options.update(opts)
+    try:
+        return api_call(service, 'statuses/user_timeline', options)
+    except:
+        print_exc()
+        return []
+
+
 
 class UserStatusThread(QThread):
 
-    def __init__(self, app, id, user, service, icon=None):
+    def __init__(self, app, id, user, service, knownids):
         QThread.__init__(self, app)
         self.id = id
         self.app = app
-        self.icon = icon
         self.user = user
         self.service = service
+        self.knownids = knownids
 
     def run(self):
-        if self.user == "":
+        if not self.service or not self.user:
             self.app.logStatus.emit("Error: no user given! ("+self.service+")")
             self.app.killThread.emit(self.id)
             self.quit()
             return
-        self.app.pager.update(self.service, self.user)
-        updates =  self.app.pager.load_page(self.service, self.user)
-        if not updates:
-            self.app.logStatus.emit("Error: no results! ("+self.service+")")
+
+        n, i = 1, 0
+        _id = ''
+        trys = 0
+        page = 1
+        step = 200
+
+        new_statuses = None
+
+        try:
+            servicecount = api_call(self.service, 'users/show',
+                {'id': self.user})['statuses_count']
+        except:
+            print_exc()
             self.app.killThread.emit(self.id)
             self.quit()
             return
-        self.app.logStatus.emit("%i updates on %s from %s" % \
-            (len(updates), self.service, self.user))
-        for update in updates:
-            update.icon = self.icon
-            self.app.addMessage.emit(update.__dict__)
+        while servicecount > 0:
+            fetch_count = min(n==1 and int(step/10) or step, servicecount)
+            print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
+                (n, fetch_count, page, servicecount, self.service),"[%i]"%trys
+            new_statuses = get_page(self.service, self.user, fetch_count,
+                page, page == 2 and _id and {'max_id':_id} or {})
+            stop = False
+            if n > 1:
+                servicecount -= len(new_statuses)
+                if len(new_statuses) == 0:
+                    trys += 1
+            for status in new_statuses:
+                _id = str(status['id'])
+                id = self.service + _id
+                if status['id'] in self.knownids:
+                    print id, "(found)"
+                    stop = True
+                else:
+                    print id
+                    i += 1
+                    update = parse_post(self.service, status)
+                    self.knownids.append(_id)
+                    self.app.addMessage.emit(update)
+            n += 1
+            self.yieldCurrentThread()
+            if stop or trys > 3: break
+            if fetch_count != int(step/10):
+                page += 1
+
+        if i:
+            self.app.logStatus.emit("%i updates on %s from %s" % \
+                (i, self.service, self.user))
+        else:
+            self.app.logStatus.emit("Error: no results! ("+self.service+")")
         print self.service + " done."
         self.app.killThread.emit(self.id)
         self.quit()
-
 
 
 
@@ -92,10 +148,9 @@ def next_page(service, prev, result):
 
 class MicroblogThread(QThread):
 
-    def __init__(self, app, user, service, icon=None):
+    def __init__(self, app, user, service):
         QThread.__init__(self, app)
         self.app = app
-        self.icon = icon
         self.user = user
         self.service = service
         self.friends = QSettings("blain", "%s-%s-friends" % (user, service))
@@ -134,16 +189,14 @@ class MicroblogThread(QThread):
                 dump = json.dumps(friend)
                 self.friends.setValue(id, dump)
             if stop or trys > 3: break
-            self.yieldCurrentThread()
+            #self.yieldCurrentThread()
         print "friends list up-to-date. (%s)" % self.service
         self.end()
 
     def end(self):
         # update all users
-        for friend in self.friends.allKeys():
-            opts = {'user':friend, 'service':self.service}
-            if self.icon:
-                opts['icon'] = self.icon
+        for user in self.friends.allKeys() + [self.user]:
+            opts = {'user':user, 'service':self.service}
             self.app.updateUser.emit(opts)
         print "done."
         self.quit()
