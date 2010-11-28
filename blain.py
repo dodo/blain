@@ -205,6 +205,9 @@ class Blain(qt.QApplication):
 
     def run(self):
         self.window.show()
+        self.window.update()
+        self.window.repaint()
+        self.updateMessageView(42)
         self.window.statusBar.showMessage("Ready ...", 3000)
         print "done."
         sys.exit(self.exec_())
@@ -213,6 +216,7 @@ class Blain(qt.QApplication):
         maxcount = maxcount or 200
         mt = self.window.messageTable
         self.avatar_cache = {}
+        n = 0
         mt.clear()
         Post = self.db.Post
         messages = Post.find().order_by(desc(Post.time)).limit(maxcount).all()
@@ -233,6 +237,10 @@ class Blain(qt.QApplication):
             i = qt.QTreeWidgetItem(mt)
             i.setText(0, time)
             mt.setItemWidget(i, 1, msg)
+            n += 1
+            if not n%13:
+                mt.update()
+                mt.repaint()
 
     def _logStatus(self, msg, time=5000):
         print msg

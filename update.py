@@ -92,10 +92,10 @@ class UserStatusThread(QThread):
                     print id
                     i += 1
                     update = parse_post(self.service, status)
-                    self.knownids.append(_id)
+                    self.knownids.append(status['id'])
                     self.app.addMessage.emit(update)
             n += 1
-            self.yieldCurrentThread()
+            #self.yieldCurrentThread()
             if stop or trys > 3: break
             if fetch_count != int(step/10):
                 page += 1

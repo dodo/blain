@@ -100,18 +100,17 @@ def parse_identica(post):
 
 
 def parse_image(app, service, user, url):
-    id = service+user
-    if id in app.avatar_cache:
-        return (app.avatar_cache[id].pixmap(), id)
-    if app.avatars.contains(id):
-        return (qt.QPixmap(app.avatars.value(id)), id)
+    if url in app.avatar_cache:
+        return (app.avatar_cache[url].pixmap(), url)
+    if app.avatars.contains(url):
+        return (qt.QPixmap(app.avatars.value(url)), url)
     print "fetching %s profile image from %s" % (user, service)
     image = get_image(str(url))
     if image:
         image = qt.QPixmap.fromImage(qt.QImage.fromData(image)).scaled(32,32,
             qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
-        app.avatars.setValue(id, image)
-    return (image, id)
+        app.avatars.setValue(url, image)
+    return (image, url)
 
 
 def parse_post(service, post):
