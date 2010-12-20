@@ -21,14 +21,21 @@ from parsing import drug, parse_image, prepare_post
 def patchStyleSheet(stylesheet, key, value):
     stylesheet = str(stylesheet)
     lines = stylesheet.replace("\n","").split(";")
-    if key not in stylesheet:
-        lines.append( "%s: %s" % (key, value) )
+    if value is None:
+        if key in stylesheet:
+            for i, line in enumerate(lines):
+                if line.strip().startswith(key):
+                    lines = lines[:i] + lines[i+1:]
+                    break
     else:
-        for i, line in enumerate(lines):
-            if line.strip().startswith(key):
-                lines[i] = "{0}{3}: {4}{2}".\
-                    format(*(line.partition(line.strip()) + (key, value)))
-                break
+        if key not in stylesheet:
+            lines.append( "%s: %s" % (key, value) )
+        else:
+            for i, line in enumerate(lines):
+                if line.strip().startswith(key):
+                    lines[i] = "{0}{3}: {4}{2}".\
+                        format(*(line.partition(line.strip()) + (key, value)))
+                    break
     return ";\n".join(lines)
 
 
@@ -186,6 +193,7 @@ class Blain(qt.QApplication):
         self.icons = {}
         self.threads = {}
         self.avatar_cache = {}
+        self.avatar_mask = None
         self.threadwatcher = None
         self.logStatus.connect(self._logStatus)
         self.addMessage.connect(self._addMessage)
@@ -241,6 +249,19 @@ class Blain(qt.QApplication):
             msg = uic.loadUi("message.ui") # TODO chache this
             msg.messageLabel.setText(blob.text)
             msg.infoLabel.setText(blob.info)
+            if self.avatar_mask is None:
+                msg.avatarLabel.setStyleSheet(patchStyleSheet(
+                    patchStyleSheet(msg.avatarLabel.styleSheet(),
+                    'background-color', "black"), 'color', "black"))
+                msg.avatarContainer.setStyleSheet(patchStyleSheet(
+                    patchStyleSheet(msg.avatarContainer.styleSheet(),
+                    'background-color', "red"), 'color', "red"))
+                self.avatar_mask = qt.QPixmap.grabWidget(msg.avatarContainer).\
+                    createMaskFromColor(qt.QColor("red"))
+                msg.avatarContainer.setStyleSheet(patchStyleSheet(
+                    patchStyleSheet(msg.avatarContainer.styleSheet(),
+                    'background-color', None), 'color', None))
+            msg.avatarLabel.setMask(self.avatar_mask)
             msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
                 msg.avatarLabel.styleSheet(),
                 'background-color', blob.user_bgcolor),
