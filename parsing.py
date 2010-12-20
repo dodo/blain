@@ -91,6 +91,9 @@ def parse_text(text, link):
 
 def parse_twitter(post):
     post['user']['profile_url'] = services['twitter'].url + post['user']['screen_name']
+    for k in ['profile_text_color', 'profile_background_color']:
+        if post['user'][k]:
+            post['user'][k] = "#" + post['user'][k]
     return post
 
 
@@ -127,6 +130,8 @@ def parse_post(service, post):
         'service':service,
         'user_url':post.user.url,
         'user_name':post.user.name,
+        'user_fgcolor':post.user.profile_text_color or "#ddd",
+        'user_bgcolor':post.user.profile_background_color or "black",
         'user_profile_url':post.user.profile_url,
         'profile_image_url':post.user.profile_image_url}
 

@@ -18,6 +18,20 @@ from parsing import drug, parse_image, prepare_post
 
 
 
+def patchStyleSheet(stylesheet, key, value):
+    stylesheet = str(stylesheet)
+    lines = stylesheet.replace("\n","").split(";")
+    if key not in stylesheet:
+        lines.append( "%s: %s" % (key, value) )
+    else:
+        for i, line in enumerate(lines):
+            if line.strip().startswith(key):
+                lines[i] = "{0}{3}: {4}{2}".\
+                    format(*(line.partition(line.strip()) + (key, value)))
+                break
+    return ";\n".join(lines)
+
+
 class Slots:
     def __init__(self, app):
         self.app = app
@@ -227,6 +241,10 @@ class Blain(qt.QApplication):
             msg = uic.loadUi("message.ui") # TODO chache this
             msg.messageLabel.setText(blob.text)
             msg.infoLabel.setText(blob.info)
+            msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
+                msg.avatarLabel.styleSheet(),
+                'background-color', blob.user_bgcolor),
+                'color', blob.user_fgcolor))
             if blob.service in self.icons:
                 msg.serviceLabel.setPixmap(self.icons[blob.service].pixmap(16,16))
             if 'imageinfo' in blob.__dict__:
@@ -250,7 +268,8 @@ class Blain(qt.QApplication):
     def _addMessage(self, blob):
         blob = dict([(str(k),blob[k]) for k in blob])
         for k in ['text','plain','source','service','user_id','user_url',
-                'user_name','user_profile_url','profile_image_url']:
+                  'user_name','user_fgcolor','user_bgcolor','user_profile_url',
+                  'profile_image_url']:
             if blob[k]:
                 blob[k] = unicode(blob[k])
         self.db.Post(**blob).add()
