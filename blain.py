@@ -9,7 +9,6 @@ from PyQt4 import uic, Qt as qt
 
 import filters
 from db import Database
-from pager import Pager
 from ascii import get_logo
 from models import setup_models
 from update import MicroblogThread, UserStatusThread
@@ -208,7 +207,6 @@ class Blain(qt.QApplication):
         st = self.settings = qt.QSettings("blain", "blain")
         self.avatars = qt.QSettings("blain", "avatars")
         settingspath = dirname(str(st.fileName()))
-        self.pager = Pager(self)
         db = self.db = Database(location=pathjoin(settingspath, "blain.sqlite"))
         setup_models(db)
 
