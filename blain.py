@@ -15,6 +15,21 @@ from update import MicroblogThread, UserStatusThread
 from getFavicon import get_favicon
 from parsing import drug, parse_image, prepare_post
 
+print """TODO:
+ - using models for treeview and filterlist
+ - showing merged service icon for merged posts
+ - timer driven updates
+ - loading groups from identica
+ - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
+ - notifications
+ - logins
+ - highlight unread posts and show number in logo
+ - mark reposts (redents/retweets) and/or group them
+ - stack conversations together and show them as branch in treeview
+ - pages for posts
+ - grouping filters and let the user switch between them
+   (for exmaple important posters filter group)
+"""
 
 
 def patchStyleSheet(stylesheet, key, value):
