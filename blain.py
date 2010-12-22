@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from os.path import dirname, join as pathjoin
+from os.path import dirname, realpath, join as pathjoin
 from datetime import datetime
 
 from PyQt4 import uic, Qt as qt
-from sqlalchemy import desc
 
+import filters
 from db import Database
 from pager import Pager
 from ascii import get_logo
@@ -151,7 +151,7 @@ class PreferencesDialog(qt.QDialog):
     def __init__(self, app, *args):
         qt.QDialog.__init__(self, *args)
         self.app = app
-        uic.loadUi("preferences.ui", self)
+        uic.loadUi(pathjoin(app.cwd, "preferences.ui"), self)
         self.darkradioButton.setIcon(qt.QIcon(qt.QPixmap(get_logo())))
         self.lightradioButton.setIcon(qt.QIcon(qt.QPixmap(get_logo(dark=False))))
 
@@ -190,6 +190,7 @@ class Blain(qt.QApplication):
                 self.preferences.accountsTabWidget.setTabIcon(id, icon)
             return icon
 
+        cwd = self.cwd = dirname(realpath(__file__))
         self.icons = {}
         self.threads = {}
         self.avatar_cache = {}
@@ -200,16 +201,19 @@ class Blain(qt.QApplication):
         self.killThread.connect(self._killThread)
         self.updateUser.connect(self._updateUser)
 
-        self.window = uic.loadUi("window.ui")
+        self.window = uic.loadUi(pathjoin(cwd, "window.ui"))
         self.window.messageTable.hideColumn(0)
         self.preferences = PreferencesDialog(self)
 
         st = self.settings = qt.QSettings("blain", "blain")
         self.avatars = qt.QSettings("blain", "avatars")
+        settingspath = dirname(str(st.fileName()))
         self.pager = Pager(self)
-        db = self.db = Database(location =
-            pathjoin(dirname(str(st.fileName())),"blain.sqlite"))
+        db = self.db = Database(location=pathjoin(settingspath, "blain.sqlite"))
         setup_models(db)
+
+        self.filters = qt.QSettings("blain", "filters")
+        filters.setup(self, settingspath)
 
         self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
         self.setWindowIcon(self.appIcon)
@@ -240,13 +244,15 @@ class Blain(qt.QApplication):
         self.avatar_cache = {}
         n = 0
         mt.clear()
-        Post = self.db.Post
-        messages = Post.find().order_by(desc(Post.time)).limit(maxcount).all()
+        Post, Cache = self.db.Post, self.db.Cache
+        messages = Post.find().order_by(Post.time.desc()).\
+            filter(Post.id.in_(self.db.session.query(Cache.pid))).\
+            limit(maxcount).all()
         print "* update message view", len(messages)
         for _blob in messages:
             blob = prepare_post(_blob.__dict__)
             time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
-            msg = uic.loadUi("message.ui") # TODO chache this
+            msg = uic.loadUi(pathjoin(self.cwd, "message.ui")) # TODO chache this
             msg.messageLabel.setText(blob.text)
             msg.infoLabel.setText(blob.info)
             if self.avatar_mask is None:
@@ -276,10 +282,10 @@ class Blain(qt.QApplication):
             i = qt.QTreeWidgetItem(mt)
             i.setText(0, time)
             mt.setItemWidget(i, 1, msg)
-            n += 1
-            if not n%13:
-                mt.update()
-                mt.repaint()
+            #n += 1
+            #if not n%13:
+                #mt.update()
+                #mt.repaint()
 
     def _logStatus(self, msg, time=5000):
         print msg
@@ -302,8 +308,10 @@ class Blain(qt.QApplication):
         print len(self.threads),"threads still running:  ",", ".join(self.threads.keys()),"-"*40
         self.db.session.commit()
         if not self.threads:
+            filters.updateFilter(self, False) # FIXME do incremental update
             self.updateMessageView()
         else:
+            filters.updateFilter(self, False) # FIXME do incremental update
             self.updateMessageView(10)
 
     def _updateUser(self, _blob):
@@ -316,7 +324,7 @@ class Blain(qt.QApplication):
             print blob.user, "thread still running. (%s)" % blob.service
         else:
             Post = self.db.Post
-            knownids = Post.find(Post.pid).order_by(desc(Post.time))\
+            knownids = Post.find(Post.pid).order_by(Post.time.desc())\
                 .filter_by(user_id = blob.user).limit(2000).all()
             knownids = list(map(lambda i:i.pid, knownids))
             self.threads[id] = UserStatusThread(

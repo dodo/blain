@@ -18,5 +18,8 @@ def setup_models(db):
             user_profile_url = 'string',
             profile_image_url = 'string',
             ),
+        model(db, "Cache",
+            pid = "integer", # Post.id
+            ),
         )
 
