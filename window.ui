@@ -129,16 +129,6 @@
     </property>
     <addaction name="actionUpdate_view"/>
    </widget>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-    <addaction name="actionSilence"/>
-    <addaction name="separator"/>
-    <addaction name="actionShow_statusbar"/>
-    <addaction name="separator"/>
-    <addaction name="actionPreferences"/>
-   </widget>
    <widget class="QMenu" name="menuService">
     <property name="title">
      <string>Service</string>
@@ -147,6 +137,17 @@
     <addaction name="actionMinimize"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionSilence"/>
+    <addaction name="actionDoUpdates"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_statusbar"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <addaction name="menuService"/>
    <addaction name="menuTools"/>
@@ -213,6 +214,17 @@
   <action name="actionUpdate_view">
    <property name="text">
     <string>update view</string>
+   </property>
+  </action>
+  <action name="actionDoUpdates">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>fetch updates</string>
    </property>
   </action>
  </widget>

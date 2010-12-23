@@ -7,6 +7,7 @@ from datetime import datetime
 
 from PyQt4 import uic, Qt as qt
 
+import update
 import filters
 from db import Database
 from ascii import get_logo
@@ -18,7 +19,7 @@ from parsing import drug, parse_image, prepare_post
 print """TODO:
  - using models for treeview and filterlist
  - showing merged service icon for merged posts
- - timer driven updates
+ #- better treeview update (only insert new posts) (timer triggered?)
  - loading groups from identica
  - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
  - notifications
@@ -27,6 +28,8 @@ print """TODO:
  - mark reposts (redents/retweets) and/or group them
  - stack conversations together and show them as branch in treeview
  - pages for posts
+ - clean up code
+ - clean up folder
  - grouping filters and let the user switch between them
    (for exmaple important posters filter group)
 """
@@ -60,9 +63,12 @@ class Slots:
 
     def connect(self):
         win = self.app.window
+        win.actionDoUpdates.setChecked(
+            self.app.settings.value("timer/active",True).toBool())
         win.sendButton.clicked.connect(self.sendMessage)
         win.messageEdit.returnPressed.connect(self.sendMessage)
         win.messageEdit.textChanged.connect(self.sendButtonController)
+        win.actionDoUpdates.triggered.connect(self.doUpdates)
         win.actionUpdate_now.triggered.connect(self.updateAll)
         win.actionMinimize.triggered.connect(win.hide)
         win.actionQuit.triggered.connect(self.app.quit)
@@ -96,11 +102,12 @@ class Slots:
         self.app.preferences.hide()
         self.app.window.setEnabled(True)
 
-    def updateMicroblogging(self, service, text):
+    def updateMicroblogging(self, service, user, updateusers=True):
+        service, user = str(service), unicode(user)
         if service in self.threads and self.threads[service].isRunning():
             print "update %s already running" % service
             return
-        self.threads[service] = MicroblogThread(self.app, text, service)
+        self.threads[service]=MicroblogThread(self.app,user,service,updateusers)
         self.threads[service].start()
 
     def updateTwitter(self):
@@ -111,6 +118,11 @@ class Slots:
         self.updateMicroblogging('identica',
             self.app.preferences.identicaidEdit.text())
 
+
+    def doUpdates(self, checked):
+        if checked: self.app.timer.start()
+        else:       self.app.timer.stop()
+        self.app.settings.setValue("timer/active", checked)
 
     def updateAll(self):
         self.updateIdentica()
@@ -178,10 +190,11 @@ class PreferencesDialog(qt.QDialog):
 
 class Blain(qt.QApplication):
 
-    logStatus = qt.pyqtSignal((str,), (str, int))
+    logStatus = qt.pyqtSignal(str)
     killThread = qt.pyqtSignal(str)
     addMessage = qt.pyqtSignal(dict)
-    updateUser = qt.pyqtSignal(dict)
+    updateUser = qt.pyqtSignal(str, str)
+    updateMicroblogging = qt.pyqtSignal(str, str, bool)
 
     def __init__(self):
         print "loading …"
@@ -227,6 +240,9 @@ class Blain(qt.QApplication):
 
         self.filters = qt.QSettings("blain", "filters")
         filters.setup(self, settingspath)
+        if st.contains("account/twitter/id") or \
+           st.contains("account/identica/id"):
+            update.setup(self)
 
         self.appIcon = qt.QIcon(qt.QPixmap(get_logo(dark=st.value("icon/isdark",True).toBool())))
         self.setWindowIcon(self.appIcon)
@@ -240,6 +256,7 @@ class Blain(qt.QApplication):
         self.slots = Slots(self)
         self.slots.loadSettings()
         self.slots.connect()
+        self.updateMicroblogging.connect(self.slots.updateMicroblogging)
         self.window.actionUpdate_view.triggered.connect(self.updateMessageView)
 
     def run(self):
@@ -321,27 +338,24 @@ class Blain(qt.QApplication):
         print len(self.threads),"threads still running:  ",", ".join(self.threads.keys()),"-"*40
         self.db.session.commit()
         if not self.threads:
-            filters.updateFilter(self, False) # FIXME do incremental update
-            self.updateMessageView()
+            filters.updateFilter(self, False)() # FIXME do incremental update
+            self.updateMessageView(42)
         else:
-            filters.updateFilter(self, False) # FIXME do incremental update
+            filters.updateFilter(self, False)() # FIXME do incremental update
             self.updateMessageView(10)
 
-    def _updateUser(self, _blob):
-        _blob = dict([(str(k),_blob[k]) for k in _blob])
-        for k in ['user', 'service']:
-            _blob[k] = str(_blob[k])
-        blob = drug(**_blob)
-        id = blob.service+blob.user
+    def _updateUser(self, service, user):
+        service, user = unicode(service), unicode(user)
+        id = service + user
         if id in self.threads and self.threads[id].isRunning():
-            print blob.user, "thread still running. (%s)" % blob.service
+            print user, "thread still running. (%s)" % service
         else:
             Post = self.db.Post
-            knownids = Post.find(Post.pid).order_by(Post.time.desc())\
-                .filter_by(user_id = blob.user).limit(2000).all()
+            knownids = Post.find(Post.pid).order_by(Post.time.desc()).\
+                filter_by(user_id = user).limit(2000).all()
             knownids = list(map(lambda i:i.pid, knownids))
             self.threads[id] = UserStatusThread(
-                self, id, blob.user, blob.service, knownids)
+                self, id, user, service, knownids)
             self.threads[id].start()
 
 
