@@ -57,7 +57,7 @@ class UserStatusThread(QThread):
             self.quit()
             return
 
-        ok = True
+        ok = False
         n, i = 1, 0
         _id = ''
         trys = 0
@@ -67,11 +67,15 @@ class UserStatusThread(QThread):
         new_statuses = None
 
         try:
-            servicecount = api_call(self.service, 'users/show',
-                {'id': self.user})['statuses_count']
+            res = api_call(self.service, 'users/show', {'id': self.user})
+            protected = res['protected']
+            servicecount = res['statuses_count']
+            ok = True
         except:
             print_exc()
-            updates.user(self.service, self.user, 0, False)
+            protected = True # by error :P
+        if protected:
+            updates.user(self.service, self.user, 0, ok)
             self.app.killThread.emit(self.id)
             self.quit()
             return
@@ -269,7 +273,7 @@ def setup(app):
                 n, cur = i, timer
                 break
         if cur is None: return
-        cur[0] = time() - (not ok) * 5 + count / len(timers)
+        cur[0] = time() - (not ok) * 5 - count / len(timers)
         st.setValue(str(n), ",".join(map(unicode, cur)))
 
     def update_friends(service, user): # new_updates count

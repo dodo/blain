@@ -43,6 +43,14 @@ class ServiceFailedException(Exception):
     def __str__(self):
         return self.msg
 
+
+### NEW
+class UrlOpener(urllib.FancyURLopener):
+
+    def prompt_user_passwd(self, host, realm):
+        return ("user", "password")
+###
+
 urls = {
         'identica': {
             'api': "http://identi.ca/api/",
@@ -71,7 +79,7 @@ def api_call(service, method, options, tries=3):
             'method': method,
             }
 
-    res = urllib.urlopen("{base_url}{method}.json?{query}".format(**url_parts))
+    res = UrlOpener().open("{base_url}{method}.json?{query}".format(**url_parts))
 
     # watch rate limit (twitter only)
     ratelimit = re.search("X-RateLimit-Remaining: ([0-9]+)", str(res.info()))
@@ -103,7 +111,7 @@ def search(service, query, page=1):
             'url': urls[service]['search'],
             }
 
-    res = urllib.urlopen("{url}?{query}".format(**url_parts))
+    res = UrlOpener().open("{url}?{query}".format(**url_parts))
 
     if res.getcode() < 300:
         raw = json.load(res)
