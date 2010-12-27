@@ -6,13 +6,37 @@ from datetime import datetime, timedelta
 
 from PyQt4 import Qt as qt
 
-from getFavicon import get_image
+from inc.get_favicon import get_image
 
 
 class drug():
     def __init__(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
+
+
+
+def patchStyleSheet(stylesheet, key, value):
+    stylesheet = str(stylesheet)
+    lines = stylesheet.replace("\n","").split(";")
+    if value is None:
+        if key in stylesheet:
+            for i, line in enumerate(lines):
+                if line.strip().startswith(key):
+                    lines = lines[:i] + lines[i+1:]
+                    break
+    else:
+        if key not in stylesheet:
+            lines.append( "%s: %s" % (key, value) )
+        else:
+            for i, line in enumerate(lines):
+                if line.strip().startswith(key):
+                    lines[i] = "{0}{3}: {4}{2}".\
+                        format(*(line.partition(line.strip()) + (key, value)))
+                    break
+    return ";\n".join(lines)
+
+
 
 
 rex = {
