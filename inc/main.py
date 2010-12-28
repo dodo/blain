@@ -12,7 +12,7 @@ class Window:
 
     def __init__(self, app):
         self.app = app
-        self.ui = loadUi(pathjoin(app.cwd, "window.ui"))
+        self.ui = loadUi(pathjoin(app.cwd, "gui", "window.ui"))
 
 
     def connect(self):
@@ -90,7 +90,7 @@ class Window:
             if str(blob.pid) not in pids:
                 pids.append(blob.pid)
                 time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
-                msg = loadUi(pathjoin(self.app.cwd, "message.ui")) # TODO chache this
+                msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
                 msg.id.setVisible(False)
                 msg.id.setText(str(blob.pid))
                 msg.messageLabel.setText(blob.text)

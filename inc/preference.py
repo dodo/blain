@@ -13,7 +13,7 @@ class PreferencesDialog(QDialog):
     def __init__(self, app, *args):
         QDialog.__init__(self, *args)
         self.app = app
-        loadUi(pathjoin(app.cwd, "preferences.ui"), self)
+        loadUi(pathjoin(app.cwd, "gui", "preferences.ui"), self)
         self.darkradioButton.setIcon(QIcon(QPixmap(get_logo())))
         self.lightradioButton.setIcon(QIcon(QPixmap(get_logo(dark=False))))
 
