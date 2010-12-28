@@ -77,32 +77,40 @@ class Window:
     def updateMessageView(self, maxcount = 0):
         maxcount = maxcount or 200
         mt = self.ui.messageTable
-        self.app.icons.avatar_cache = {}
+        items = [ (n, str(i.text(0)), str(mt.itemWidget(i, 1).id.text()), i)
+                  for n, i in enumerate(map(lambda n:mt.topLevelItem(n),
+                              range(mt.topLevelItemCount()))) ]
+        pids = [ item[2] for item in items ]
         n = 0
-        mt.clear()
+        self.app.icons.avatar_cache = {}
         messages = self.app.db.get_messages_from_cache(maxcount)
         print "* update message view", len(messages)
         for _blob in messages:
             blob = prepare_post(_blob.__dict__)
-            time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
-            msg = loadUi(pathjoin(self.app.cwd, "message.ui")) # TODO chache this
-            msg.messageLabel.setText(blob.text)
-            msg.infoLabel.setText(blob.info)
-            self.app.icons.do_mask_on_(msg)
-            msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
-                msg.avatarLabel.styleSheet(),
-                'background-color', blob.user_bgcolor),
-                'color', blob.user_fgcolor))
-            self.app.icons.do_service_icon_on_(msg, blob.service)
+            if str(blob.pid) not in pids:
+                pids.append(blob.pid)
+                time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
+                msg = loadUi(pathjoin(self.app.cwd, "message.ui")) # TODO chache this
+                msg.id.setVisible(False)
+                msg.id.setText(str(blob.pid))
+                msg.messageLabel.setText(blob.text)
+                msg.infoLabel.setText(blob.info)
+                self.app.icons.do_mask_on_(msg)
+                msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
+                    msg.avatarLabel.styleSheet(),
+                    'background-color', blob.user_bgcolor),
+                    'color', blob.user_fgcolor))
+                self.app.icons.do_service_icon_on_(msg, blob.service)
 
-            if 'imageinfo' in blob.__dict__:
-                self.app.icons.do_avatar_on_(msg, blob.imageinfo)
-            i = QTreeWidgetItem(mt)
-            i.setText(0, time)
-            mt.setItemWidget(i, 1, msg)
-            #n += 1
-            #if not n%13:
-                #mt.update()
-                #mt.repaint()
+                if 'imageinfo' in blob.__dict__:
+                    self.app.icons.do_avatar_on_(msg, blob.imageinfo)
+                i = QTreeWidgetItem(mt)
+                i.setText(0, time)
+                mt.setItemWidget(i, 1, msg)
+        # now remove the too old ones
+        items.sort(key=lambda i:i[1])
+        for old in list(reversed(items))[maxcount-1:]:
+            item = old[3]
+            del item
 
 
