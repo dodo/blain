@@ -29,6 +29,8 @@ class Iconer:
             0, "identica", "http://identi.ca")
         self.icons['twitter']  = self.get_service_icon(
             1, "twitter", "http://twitter.com")
+        if not self.app.preferences.settings.contains("icon/dark"):
+            self.app.preferences.settings.setValue("icon/dark", True)
         self.loadWindow()
 
 
