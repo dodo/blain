@@ -7,9 +7,10 @@ The _better_ Identi.ca Twitter client.
 Dependencies
 ------------
 
-* PyQt4
-* Python 2.x
-* python-cjson (optional, but recommended)
+* PyQt4 [python-qt4]
+* SqlAlchemy [python-sqlalchemy]
+* Python 2.x [python]
+* python-cjson [python-cjson] (optional, but recommended)
 
 
 TODO
