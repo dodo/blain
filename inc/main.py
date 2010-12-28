@@ -77,16 +77,22 @@ class Window:
     def updateMessageView(self, maxcount = 0):
         maxcount = maxcount or 200
         mt = self.ui.messageTable
-        items = [ (n, str(i.text(0)), str(mt.itemWidget(i, 1).id.text()), i)
+        items = [ (n, str(i.text(0)), mt.itemWidget(i, 1), i)
                   for n, i in enumerate(map(lambda n:mt.topLevelItem(n),
                               range(mt.topLevelItemCount()))) ]
-        pids = [ item[2] for item in items ]
+        pids = [ str(item[2].id.text()) for item in items ]
+        olditems = list(items)
+        olds = list(pids)
         n = 0
         self.app.icons.avatar_cache = {}
         messages = self.app.db.get_messages_from_cache(maxcount)
         print "* update message view", len(messages)
         for _blob in messages:
             blob = prepare_post(_blob.__dict__)
+            if str(blob.pid) in olds:
+                i = olds.index(str(blob.pid))
+                olditems.pop(i)
+                olds.pop(i)
             if str(blob.pid) not in pids:
                 pids.append(blob.pid)
                 time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
@@ -109,7 +115,8 @@ class Window:
                 mt.setItemWidget(i, 1, msg)
         # now remove the too old ones
         items.sort(key=lambda i:i[1])
-        for old in list(reversed(items))[maxcount-1:]:
+        for old in list(reversed(items))[maxcount-1:] + olditems:
+            mt.removeItemWidget(old[3], 1)
             item = old[3]
             del item
 
