@@ -18,7 +18,10 @@ class Databaser:
 #get messages by cache or smth
 
     def setup(self):
-        settingspath = dirname(str(QSettings("blain", "blain").fileName()))
+        st = QSettings("blain", "blain")
+        st.setValue("_", 0)
+        st.sync()
+        settingspath = dirname(str(st.fileName()))
         self.db = db = Database(location=pathjoin(settingspath, "blain.sqlite"))
         setup_models(db)
 
