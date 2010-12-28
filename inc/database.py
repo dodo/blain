@@ -1,6 +1,8 @@
 
 from os.path import dirname, join as pathjoin
 
+from PyQt4.Qt import QSettings
+
 from inc.db import Database
 from inc.models import setup_models
 
@@ -16,7 +18,7 @@ class Databaser:
 #get messages by cache or smth
 
     def setup(self):
-        settingspath = dirname(str(self.app.preferences.settings.fileName()))
+        settingspath = dirname(str(QSettings("blain", "blain").fileName()))
         self.db = db = Database(location=pathjoin(settingspath, "blain.sqlite"))
         setup_models(db)
 
