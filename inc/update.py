@@ -144,5 +144,5 @@ class Updater:
     def all(self):
         self.identica(False)
         self.twitter(False)
-        self.app.threads.start('twitter', 'identica')
+        self.app.threads.start('identica', 'twitter')
 
