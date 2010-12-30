@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from locale import setlocale, LC_ALL
 from os.path import dirname, realpath
 
 from PyQt4.Qt import QApplication, pyqtSignal
@@ -13,6 +14,9 @@ from inc.update import Updater
 from inc.icons import Iconer
 from inc.filters import Filterer
 from inc.thread import Threader
+
+
+setlocale(LC_ALL, ('en','utf_8'))
 
 
 print """TODO:
@@ -46,7 +50,7 @@ class Blain(QApplication):
     updateMicroblogging = pyqtSignal(str, str, bool)
 
     def __init__(self):
-        print "loading …"
+        print "loading ..."
         QApplication.__init__(self, sys.argv)
 
         self.cwd = dirname(realpath(__file__))
