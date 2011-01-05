@@ -20,12 +20,11 @@
 ###############################################################################
 
 import sys
-import json
 import re
 import urllib
 from warnings import warn
 
-from json_batch import save_batch
+from json_batch import save_batch, json
 
 class UnknownServiceException(Exception):
 
