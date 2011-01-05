@@ -51,11 +51,12 @@ class Databaser:
         max = Post.find().count()
         Cache.find().delete()
         if max < 200:
-           posts = apply(Post.find().order_by(Post.time.desc()).all())
+            posts = apply(Post.find().order_by(Post.time.desc())\
+                .filter_by(by_conversation=False).all())
         else:
             posts, got = [], 0
             while len(posts) < 200 and got < max:
-                new = Post.find().order_by(
+                new = Post.find().filter_by(by_conversation=False).order_by(
                     Post.time.desc()).offset(got).limit(400).all()
                 got += len(new)
                 posts += apply(new)
@@ -73,4 +74,5 @@ class Databaser:
             if blob[k]:
                 blob[k] = unicode(blob[k])
         self.db.Post(**blob).add()
+        # TODO check here for conversations
 

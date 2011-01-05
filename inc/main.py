@@ -100,6 +100,8 @@ class Window:
                 msg.id.setVisible(False)
                 if blob.author_id == blob.user_id:
                     msg.repeatLabel.setVisible(False)
+                if blob.reply is None:
+                    msg.replyLabel.setVisible(False)
                 msg.id.setText(str(blob.pid))
                 msg.messageLabel.setText(blob.text)
                 msg.infoLabel.setText(blob.info)

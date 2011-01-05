@@ -8,6 +8,7 @@ def setup_models(db):
             time = 'datetime',
             text = 'string', # parsed message text with html
             plain = 'string', # plain message text
+            reply = 'integer', # pid
             source = 'string',
             service = 'string',
             user_id = 'string', # screen_name
@@ -18,12 +19,18 @@ def setup_models(db):
             author_name = 'string',
             user_fgcolor = 'string',
             user_bgcolor = 'string',
+            by_conversation = 'boolean', # all posts only reference by conversation (not by timeline)
             user_profile_url = 'string',
             profile_image_url = 'string',
             author_profile_url = 'string',
             ),
         model(db, "Cache",
             pid = "integer", # Post.id
+            ),
+        model(db, "Conversation",
+            pid = 'integer',
+            ids = 'string', # space seperated
+
             ),
         )
 

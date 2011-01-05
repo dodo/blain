@@ -163,6 +163,7 @@ def parse_post(service, post):
     return {
         'pid':post.id,
         'text':parse_text(post.text, services[service].url),
+        'reply':post.in_reply_to_status_id,
         'plain':post.text,
         'source':post.source or 'web',
         'time':parse_date(post.created_at),
@@ -175,6 +176,7 @@ def parse_post(service, post):
         'author_name':post.author.name,
         'user_fgcolor':post.user.profile_text_color or "#ddd",
         'user_bgcolor':post.user.profile_background_color or "black",
+        'by_conversation':False,
         'user_profile_url':post.user.profile_url,
         'profile_image_url':post.user.profile_image_url,
         'author_profile_url':post.author.profile_url}
