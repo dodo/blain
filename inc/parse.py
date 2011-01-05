@@ -141,19 +141,31 @@ def parse_image(app, service, user, url):
 
 
 def parse_post(service, post):
-    post = services[service].parse(post)
-    post = drug(**post)
+    _post = services[service].parse(post)
+    post = drug(**_post)
     post.user = drug(**post.user)
+    post.author = drug(screen_name=post.user.screen_name, name=post.user.name)
+    if 'retweeted_status' in _post:
+        repost = drug(**post.retweeted_status)
+        repost.user = drug(**repost.user)
+        post.text = repost.text
+        post.author.screen_name = repost.user.screen_name
+        post.author.name = repost.user.name
+        post.user.profile_text_color = repost.user.profile_text_color
+        post.user.profile_background_color=repost.user.profile_background_color
+        post.user.profile_image_url = repost.user.profile_image_url
     return {
         'pid':post.id,
         'text':parse_text(post.text, services[service].url),
         'plain':post.text,
-        'source':post.source,
+        'source':post.source or 'web',
         'time':parse_date(post.created_at),
         'user_id':post.user.screen_name,
         'service':service,
         'user_url':post.user.url,
         'user_name':post.user.name,
+        'author_id':post.author.screen_name,
+        'author_name':post.author.name,
         'user_fgcolor':post.user.profile_text_color or "#ddd",
         'user_bgcolor':post.user.profile_background_color or "black",
         'user_profile_url':post.user.profile_url,

@@ -98,6 +98,8 @@ class Window:
                 time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
                 msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
                 msg.id.setVisible(False)
+                if blob.author_id == blob.user_id:
+                    msg.repeatLabel.setVisible(False)
                 msg.id.setText(str(blob.pid))
                 msg.messageLabel.setText(blob.text)
                 msg.infoLabel.setText(blob.info)
@@ -117,7 +119,7 @@ class Window:
         items.sort(key=lambda i:i[1])
         for old in list(reversed(items))[maxcount-1:] + olditems:
             mt.removeItemWidget(old[3], 1)
-            item = old[3]
+            item = old[2]
             del item
 
 

@@ -13,6 +13,8 @@ def setup_models(db):
             user_id = 'string', # screen_name
             user_url = 'string',
             user_name = 'string',
+            author_id = 'string',
+            author_name = 'string',
             user_fgcolor = 'string',
             user_bgcolor = 'string',
             user_profile_url = 'string',

@@ -30,7 +30,7 @@ print """TODO:
  - interner favoriten speicher um posts als später lesen zu markieren
  - conversationen ausmachbar machen
  - highlight unread posts and show number in logo
- - mark reposts (redents/retweets) and/or group them
+ - mark reposts (redents/retweets) and/or group them [marking done]
  - stack conversations together and show them as branch in treeview
  - pages for posts
  - clean up code

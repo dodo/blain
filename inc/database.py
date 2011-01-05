@@ -68,7 +68,7 @@ class Databaser:
         blob = dict([(str(k),blob[k]) for k in blob])
         for k in ['text','plain','source','service','user_id','user_url',
                   'user_name','user_fgcolor','user_bgcolor','user_profile_url',
-                  'profile_image_url']:
+                  'profile_image_url', 'author_name', 'author_id']:
             if blob[k]:
                 blob[k] = unicode(blob[k])
         self.db.Post(**blob).add()
