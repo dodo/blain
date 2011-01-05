@@ -144,13 +144,19 @@ def parse_post(service, post):
     _post = services[service].parse(post)
     post = drug(**_post)
     post.user = drug(**post.user)
-    post.author = drug(screen_name=post.user.screen_name, name=post.user.name)
+    post.author = drug(screen_name = post.user.screen_name,
+                       profile_url = post.user.profile_url,
+                       name        = post.user.name,
+                       url         = post.user.url)
     if 'retweeted_status' in _post:
-        repost = drug(**post.retweeted_status)
+        _repost = services[service].parse(post.retweeted_status)
+        repost = drug(**_repost)
         repost.user = drug(**repost.user)
         post.text = repost.text
         post.author.screen_name = repost.user.screen_name
+        post.author.profile_url = repost.user.profile_url
         post.author.name = repost.user.name
+        post.author.url = repost.user.url
         post.user.profile_text_color = repost.user.profile_text_color
         post.user.profile_background_color=repost.user.profile_background_color
         post.user.profile_image_url = repost.user.profile_image_url
@@ -165,18 +171,26 @@ def parse_post(service, post):
         'user_url':post.user.url,
         'user_name':post.user.name,
         'author_id':post.author.screen_name,
+        'author_url':post.author.url,
         'author_name':post.author.name,
         'user_fgcolor':post.user.profile_text_color or "#ddd",
         'user_bgcolor':post.user.profile_background_color or "black",
         'user_profile_url':post.user.profile_url,
-        'profile_image_url':post.user.profile_image_url}
+        'profile_image_url':post.user.profile_image_url,
+        'author_profile_url':post.author.profile_url}
 
 
 def prepare_post(blob):
     post = drug(**blob)
-    post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>) via %s on %s' % \
+    repeatstr = ""
+    if post.author_id != post.user_id:
+        repeatstr = ' repeated <a href="%s">%s</a> (<a href="%s">%s</a>)' % \
+            (post.author_url, post.author_name,
+             post.author_profile_url, post.author_id)
+    post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>)%s via %s on %s' % \
         (post.user_url, post.user_name, post.user_profile_url,
-         post.user_id, post.source, post.time.strftime("%a %d %b %Y %H:%M:%S"))
+         post.user_id, repeatstr, post.source,
+         post.time.strftime("%a %d %b %Y %H:%M:%S"))
     post.imageinfo = [post.service, post.user_id, post.profile_image_url]
     return post
 
