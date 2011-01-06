@@ -137,7 +137,7 @@ def parse_image(app, service, user, url):
         return (app.avatar_cache[url].pixmap(), url)
     if app.avatars.contains(url):
         return (qt.QPixmap(app.avatars.value(url)), url)
-    print "fetching %s profile image from %s" % (user, service)
+    print "fetching %s profile image from %s  (%s)" % (user, service, url)
     image = get_image(str(url))
     if image:
         image = qt.QPixmap.fromImage(qt.QImage.fromData(image)).scaled(32,32,

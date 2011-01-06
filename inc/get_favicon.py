@@ -2,7 +2,7 @@ import sys
 import shutil
 import urllib2
 import lxml.html
-
+from traceback import print_exc
 
 HEADERS = {
     'User-Agent': 'urllib2 (Python %s)' % sys.version.split()[0],
@@ -15,7 +15,7 @@ def get_image(url):
     try:
         return urllib2.urlopen(request).read()
     except(urllib2.HTTPError, urllib2.URLError):
-        pass
+        print_exc()
     return None
 
 
