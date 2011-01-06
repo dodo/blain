@@ -63,6 +63,12 @@ def services():
 }
 
 
+def _clean_url(url):
+    if url:
+        url = str(url).replace("\/", "/")
+    return url
+
+
 def parse_date(date):
     # splitting into time and timezone
     tz_str = date[-10:-5]
@@ -169,17 +175,18 @@ def parse_post(service, post):
         'time':parse_date(post.created_at),
         'user_id':post.user.screen_name,
         'service':service,
-        'user_url':post.user.url,
+        'user_url':_clean_url(post.user.url),
         'user_name':post.user.name,
         'author_id':post.author.screen_name,
-        'author_url':post.author.url,
+        'author_url':_clean_url(post.author.url),
         'author_name':post.author.name,
         'user_fgcolor':post.user.profile_text_color or "#ddd",
         'user_bgcolor':post.user.profile_background_color or "black",
+        'replied_user':post.in_reply_to_screen_name,
         'by_conversation':False,
-        'user_profile_url':post.user.profile_url,
-        'profile_image_url':post.user.profile_image_url,
-        'author_profile_url':post.author.profile_url}
+        'user_profile_url':_clean_url(post.user.profile_url),
+        'profile_image_url':_clean_url(post.user.profile_image_url),
+        'author_profile_url':(post.author.profile_url)}
 
 
 def prepare_post(blob):
@@ -195,6 +202,17 @@ def prepare_post(blob):
          post.time.strftime("%a %d %b %Y %H:%M:%S"))
     post.imageinfo = [post.service, post.user_id, post.profile_image_url]
     return post
+
+
+def pythonize_post(blob):
+    blob = dict([(str(k),blob[k]) for k in blob])
+    for k in ['text','plain','source','service','user_id','user_url',
+                'user_name','user_fgcolor','user_bgcolor','user_profile_url',
+                'profile_image_url', 'author_name', 'author_id',
+                'author_url', 'author_profile_url', 'replied_user']:
+        if blob[k]:
+            blob[k] = unicode(blob[k])
+    return blob
 
 
 services = services()

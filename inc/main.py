@@ -3,7 +3,7 @@ from os.path import join as pathjoin
 from datetime import datetime
 
 from PyQt4.uic import loadUi
-from PyQt4.Qt import QSystemTrayIcon, QTreeWidgetItem
+from PyQt4.Qt import QSystemTrayIcon, QTreeWidgetItem, QMargins
 
 from inc.parse import patchStyleSheet, prepare_post
 
@@ -24,6 +24,7 @@ class Window:
         ui.actionQuit.triggered.connect(self.app.quit)
         ui.actionSilence.triggered.connect(self.test)
         ui.actionUpdate_view.triggered.connect(self.updateMessageView)
+        ui.messageTable.itemDoubleClicked.connect(self.showConversation)
         app.logStatus.connect(self.logStatus)
 
 
@@ -48,7 +49,7 @@ class Window:
         # TODO send message instead of printing it
         txt = self.ui.messageEdit.text()
         if txt != "":
-            self.app.addMessage.emit( ####
+            self.app.addMessage.emit( "twitter", ####
                 {'time':datetime.now(),'text':txt,'info':"test"})
             self.ui.messageEdit.setText("")
             self.app.updateMessageView() ####
@@ -66,6 +67,26 @@ class Window:
         pprint(get_user('twitter', 'dodothelast'))
         pprint(get_user('identica', 'dodothelast'))
         print "done."
+
+
+    def showConversation(self, item, _):
+        mt = self.ui.messageTable
+        msg = mt.itemWidget(item, 1)
+        if item.isExpanded():
+            msg.replyLabel.setVisible(True)
+            return # allready added
+        if not msg.replyLabel.isVisible():
+            return # no conversation
+        msg.replyLabel.setVisible(False)
+        if item.childCount(): return # allready added
+        messages = self.app.db.get_conversation_messages(int(msg.id.text()))
+        for _blob in messages:
+            blob = prepare_post(_blob.__dict__)
+            msg, time = self.build_message_item(blob)
+            msg.setContentsMargins(QMargins(20,0,0,0)) # FIXME why is treewidget indentation not working ??
+            i = QTreeWidgetItem(item)
+            i.setText(0, time)
+            mt.setItemWidget(i, 1, msg)
 
 
     def logStatus(self, msg, time=5000):
@@ -95,25 +116,7 @@ class Window:
                 olds.pop(i)
             if str(blob.pid) not in pids:
                 pids.append(blob.pid)
-                time = blob.time.strftime("%Y-%m-%d %H:%M:%S")
-                msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
-                msg.id.setVisible(False)
-                if blob.author_id == blob.user_id:
-                    msg.repeatLabel.setVisible(False)
-                if blob.reply is None:
-                    msg.replyLabel.setVisible(False)
-                msg.id.setText(str(blob.pid))
-                msg.messageLabel.setText(blob.text)
-                msg.infoLabel.setText(blob.info)
-                self.app.icons.do_mask_on_(msg)
-                msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
-                    msg.avatarLabel.styleSheet(),
-                    'background-color', blob.user_bgcolor),
-                    'color', blob.user_fgcolor))
-                self.app.icons.do_service_icon_on_(msg, blob.service)
-
-                if 'imageinfo' in blob.__dict__:
-                    self.app.icons.do_avatar_on_(msg, blob.imageinfo)
+                msg, time = self.build_message_item(blob)
                 i = QTreeWidgetItem(mt)
                 i.setText(0, time)
                 mt.setItemWidget(i, 1, msg)
@@ -124,4 +127,25 @@ class Window:
             item = old[2]
             del item
 
+
+    def build_message_item(self, blob):
+        msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
+        msg.id.setVisible(False)
+        if blob.author_id == blob.user_id:
+            msg.repeatLabel.setVisible(False)
+        if blob.reply is None:
+            msg.replyLabel.setVisible(False)
+        msg.id.setText(str(blob.pid))
+        msg.messageLabel.setText(blob.text)
+        msg.infoLabel.setText(blob.info)
+        self.app.icons.do_mask_on_(msg)
+        msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
+            msg.avatarLabel.styleSheet(),
+            'background-color', blob.user_bgcolor),
+            'color', blob.user_fgcolor))
+        self.app.icons.do_service_icon_on_(msg, blob.service)
+
+        if 'imageinfo' in blob.__dict__:
+            self.app.icons.do_avatar_on_(msg, blob.imageinfo)
+        return msg, blob.time.strftime("%Y-%m-%d %H:%M:%S")
 

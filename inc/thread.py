@@ -5,7 +5,7 @@ from PyQt4.Qt import QThread, QSettings
 
 from inc.microblogging import api_call
 from inc.json_hack import json
-from inc.parse import drug, parse_post, parse_date
+from inc.parse import drug, parse_post, parse_date, pythonize_post
 
 MAX_PAGE_COUNT = 200
 
@@ -98,7 +98,7 @@ class UserStatusThread(QThread):
                     i += 1
                     update = parse_post(self.service, status)
                     self.knownids.append(status['id'])
-                    self.app.addMessage.emit(update)
+                    self.app.addMessage.emit(self.service, update)
             n += 1
             #self.yieldCurrentThread()
             if stop or trys > 3: break
@@ -230,6 +230,13 @@ class Threader:
         pass
 
 
+    def check_thread(self, id, service, text):
+        if id in self.threads and self.threads[id].isRunning():
+            print text, "thread still running. (%s)" % service
+            return False
+        return True
+
+
     def killThread(self, id):
         id = str(id)
         if id in self.threads:
@@ -249,9 +256,7 @@ class Threader:
         service, user = unicode(service), unicode(user)
         print "updating user", user, "(%s) ..." % service
         id = service + user
-        if id in self.threads and self.threads[id].isRunning():
-            print user, "thread still running. (%s)" % service
-        else:
+        if self.check_thread(id, service, user):
             knownids = self.app.db.get_knownids(user)
             self.threads[id] = UserStatusThread(
                 self.app, id, user, service, knownids)

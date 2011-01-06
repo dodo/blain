@@ -19,6 +19,7 @@ def setup_models(db):
             author_name = 'string',
             user_fgcolor = 'string',
             user_bgcolor = 'string',
+            replied_user = 'string',
             by_conversation = 'boolean', # all posts only reference by conversation (not by timeline)
             user_profile_url = 'string',
             profile_image_url = 'string',

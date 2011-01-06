@@ -45,7 +45,7 @@ class Blain(QApplication):
 
     logStatus = pyqtSignal(str)
     killThread = pyqtSignal(str)
-    addMessage = pyqtSignal(dict)
+    addMessage = pyqtSignal(str, dict)
     updateUser = pyqtSignal(str, str)
     updateMicroblogging = pyqtSignal(str, str, bool)
 
