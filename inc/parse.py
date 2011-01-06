@@ -65,7 +65,7 @@ def services():
 
 def _clean_url(url):
     if url:
-        url = str(url).replace("\/", "/")
+        url = unicode(url).replace("\/", "/")
     return url
 
 
@@ -168,10 +168,10 @@ def parse_post(service, post):
         post.user.profile_image_url = repost.user.profile_image_url
     return {
         'pid':post.id,
-        'text':parse_text(post.text, services[service].url),
+        'text':parse_text(_clean_url(post.text), services[service].url),
         'reply':post.in_reply_to_status_id,
-        'plain':post.text,
-        'source':post.source or 'web',
+        'plain':_clean_url(post.text),
+        'source':_clean_url(post.source) or 'web',
         'time':parse_date(post.created_at),
         'user_id':post.user.screen_name,
         'service':service,
