@@ -3,7 +3,7 @@ from os.path import join as pathjoin
 from datetime import datetime
 
 from PyQt4.uic import loadUi
-from PyQt4.Qt import Qt, QSystemTrayIcon, QTreeWidgetItem, QMargins
+from PyQt4.Qt import Qt, QSystemTrayIcon, QTreeWidgetItem, QPalette
 
 from inc.parse import patchStyleSheet, prepare_post
 
@@ -138,8 +138,26 @@ class Window:
         if blob.reply is None:
             msg.replyLabel.setVisible(False)
         msg.id.setText(str(blob.pid))
-        msg.messageLabel.setText(blob.text)
-        msg.infoLabel.setText(blob.info)
+        pal = self.app.palette()
+        msg.messageLabel.setText(
+            "<style>a {text-decoration:none}</style>" + blob.text)
+        msg.infoLabel.setText("<style>a {text-decoration:none;color:" +
+            pal.dark().color().name() + "}</style>" + blob.info)
+        msg.infoLabel.setStyleSheet(patchStyleSheet("",
+            'color', pal.mid().color().name()))
+        for label, fg, bg in [(msg.repeatLabel,
+                       pal.highlightedText().color().name(),
+                       pal.highlight().color().name()),
+                      (msg.replyLabel,
+                       pal.window().color().name(),
+                       pal.mid().color().name())]:
+            x = label.minimumSizeHint().height()
+            label.setMinimumSize(x, x)
+            label.setMaximumSize(x, x)
+            label.setStyleSheet(patchStyleSheet(patchStyleSheet(
+                label.styleSheet(),
+                'background-color', bg),
+                'color', fg))
         self.app.icons.do_mask_on_(msg)
         msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
             msg.avatarLabel.styleSheet(),

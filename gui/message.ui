@@ -136,15 +136,41 @@ color:#ddd;</string>
            </property>
            <item>
             <widget class="QLabel" name="repeatLabel">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border-radius: 0.5em;
+color:black;</string>
+             </property>
              <property name="text">
               <string>♻</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="replyLabel">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border-radius: 0.5em;
+color:black;</string>
+             </property>
              <property name="text">
               <string>⟱</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -174,6 +200,9 @@ color:#ddd;</string>
               <font>
                <italic>true</italic>
               </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
              </property>
              <property name="text">
               <string>info</string>
