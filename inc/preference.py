@@ -90,7 +90,8 @@ class Preferencer:
         st.setValue("icon/isdark", ui.darkradioButton.isChecked())
         st.setValue("color/messages/fg", self.fgcolor.name())
         st.setValue("color/messages/bg", self.bgcolor.name())
-        self.app.icons.loadWindow()
+        self.app.icons.update_window_icon()
+        self.app.icons.update_tray()
         if self.fgcolor != self.old.fgcolor or self.bgcolor != self.old.bgcolor:
             self.old = drug(fgcolor = self.fgcolor, bgcolor = self.bgcolor)
             self.app.window.update_messages_colors()

@@ -24,7 +24,7 @@ class Reader:
 
 
     def update(self):
-        self.app.icons.loadWindow()
+        self.app.icons.update_tray()
 
 
     def mark_as_read(self):

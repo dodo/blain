@@ -28,13 +28,15 @@ class Iconer:
 
 
     def setup(self):
+        st = self.app.preferences.settings
         self.icons['identica'] = self.get_service_icon(
             0, "identica", "http://identi.ca")
         self.icons['twitter']  = self.get_service_icon(
             1, "twitter", "http://twitter.com")
-        if not self.app.preferences.settings.contains("icon/dark"):
-            self.app.preferences.settings.setValue("icon/dark", True)
-        self.loadWindow()
+        if not st.contains("icon/dark"):
+            st.setValue("icon/dark", True)
+        self.update_window_icon()
+        self.update_tray()
 
 
     def get_service_icon(self, id, name, url):
@@ -55,13 +57,18 @@ class Iconer:
         return icon
 
 
-    def loadWindow(self):
+    def update_window_icon(self):
+        st = self.app.preferences.settings
+        self.app.window.ui.setWindowIcon(QIcon(QPixmap(
+            get_logo(dark=st.value("icon/isdark").toBool()))))
+
+
+    def update_tray(self):
         st = self.app.preferences.settings
         ai = self.icons['app'] = QIcon(QPixmap(
             get_logo(self.app.db.get_unread_count(),
             dark=st.value("icon/isdark").toBool())))
         if 'tray' in self.icons:
-            self.app.window.ui.setWindowIcon(ai)
             self.icons['tray'].setIcon(ai)
         else:
             self.icons['tray'] = QSystemTrayIcon(ai, self.app)
