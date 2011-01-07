@@ -16,25 +16,29 @@ class drug():
 
 
 
-def patchStyleSheet(stylesheet, key, value):
-    stylesheet = str(stylesheet)
+def patchStyleSheet(stylesheet, **kwargs):
+    if stylesheet == "None": stylesheet = None
+    stylesheet = str(stylesheet or "")
     lines = stylesheet.replace("\n","").split(";")
-    if value is None:
-        if key in stylesheet:
-            for i, line in enumerate(lines):
-                if line.strip().startswith(key):
-                    lines = lines[:i] + lines[i+1:]
-                    break
-    else:
-        if key not in stylesheet:
-            lines.append( "%s: %s" % (key, value) )
+    while "" in lines:
+        lines.remove("")
+    keys = list(map(lambda l:l.strip().split(":")[0].strip(), lines))
+    for key, value in kwargs.items():
+        if value is None:
+            if key in keys:
+                i = keys.index(key)
+                lines = lines[:i] + lines[i+1:]
+                keys  =  keys[:i] +  keys[i+1:]
         else:
-            for i, line in enumerate(lines):
-                if line.strip().startswith(key):
-                    lines[i] = "{0}{3}: {4}{2}".\
-                        format(*(line.partition(line.strip()) + (key, value)))
-                    break
-    return ";\n".join(lines)
+            if key not in keys:
+                lines.append( "{0}: {1}".format(key, value) )
+                keys.append(key)
+            else:
+                i = keys.index(key)
+                line = lines[i]
+                lines[i] = "{0}{3}: {4}{2}".\
+                    format(*(line.partition(line.strip()) + (key, value)))
+    return ";\n".join(lines + [''])
 
 
 

@@ -143,8 +143,7 @@ color:#ddd;</string>
               </font>
              </property>
              <property name="styleSheet">
-              <string notr="true">border-radius: 0.5em;
-color:black;</string>
+              <string notr="true">border-radius: 0.5em;</string>
              </property>
              <property name="text">
               <string>♻</string>
@@ -163,8 +162,7 @@ color:black;</string>
               </font>
              </property>
              <property name="styleSheet">
-              <string notr="true">border-radius: 0.5em;
-color:black;</string>
+              <string notr="true">border-radius: 0.5em;</string>
              </property>
              <property name="text">
               <string>⟱</string>

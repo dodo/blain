@@ -143,8 +143,8 @@ class Window:
             "<style>a {text-decoration:none}</style>" + blob.text)
         msg.infoLabel.setText("<style>a {text-decoration:none;color:" +
             pal.dark().color().name() + "}</style>" + blob.info)
-        msg.infoLabel.setStyleSheet(patchStyleSheet("",
-            'color', pal.mid().color().name()))
+        msg.infoLabel.setStyleSheet(patchStyleSheet(
+            msg.infoLabel.styleSheet(), color = pal.mid().color().name()))
         for label, fg, bg in [(msg.repeatLabel,
                        pal.highlightedText().color().name(),
                        pal.highlight().color().name()),
@@ -154,15 +154,12 @@ class Window:
             x = label.minimumSizeHint().height()
             label.setMinimumSize(x, x)
             label.setMaximumSize(x, x)
-            label.setStyleSheet(patchStyleSheet(patchStyleSheet(
-                label.styleSheet(),
-                'background-color', bg),
-                'color', fg))
+            label.setStyleSheet(patchStyleSheet(
+                label.styleSheet(), **{'background-color':bg, 'color':fg}))
         self.app.icons.do_mask_on_(msg)
-        msg.avatarLabel.setStyleSheet(patchStyleSheet(patchStyleSheet(
+        msg.avatarLabel.setStyleSheet(patchStyleSheet(
             msg.avatarLabel.styleSheet(),
-            'background-color', blob.user_bgcolor),
-            'color', blob.user_fgcolor))
+            **{'background-color':blob.user_bgcolor,'color':blob.user_fgcolor}))
         self.app.icons.do_service_icon_on_(msg, blob.service)
 
         if 'imageinfo' in blob.__dict__:

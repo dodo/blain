@@ -68,16 +68,16 @@ class Iconer:
         # set mask for given msg
         if self.avatar_mask is None:
             msg.avatarLabel.setStyleSheet(patchStyleSheet(
-                patchStyleSheet(msg.avatarLabel.styleSheet(),
-                'background-color', "black"), 'color', "black"))
+                msg.avatarLabel.styleSheet(),
+                **{'background-color':"black", 'color':"black"}))
             msg.avatarContainer.setStyleSheet(patchStyleSheet(
-                patchStyleSheet(msg.avatarContainer.styleSheet(),
-                'background-color', "red"), 'color', "red"))
+                msg.avatarContainer.styleSheet(),
+                **{'background-color':"red", 'color':"red"}))
             self.avatar_mask = QPixmap.grabWidget(msg.avatarContainer).\
                 createMaskFromColor(QColor("red"))
             msg.avatarContainer.setStyleSheet(patchStyleSheet(
-                patchStyleSheet(msg.avatarContainer.styleSheet(),
-                'background-color', None), 'color', None))
+                msg.avatarContainer.styleSheet(),
+                **{'background-color':None, 'color':None}))
         msg.avatarLabel.setMask(self.avatar_mask)
 
 
