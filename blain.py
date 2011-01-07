@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from signal import signal, SIGINT, SIG_DFL
 from locale import setlocale, LC_ALL
 from os.path import dirname, realpath
 
@@ -15,7 +16,7 @@ from inc.icons import Iconer
 from inc.filters import Filterer
 from inc.thread import Threader
 
-
+signal(SIGINT, SIG_DFL)
 setlocale(LC_ALL, ('en','utf_8'))
 
 
@@ -86,7 +87,6 @@ class Blain(QApplication):
         win.statusBar.showMessage("Ready ...", 3000)
         print "done."
         sys.exit(self.exec_())
-
 
 
 if __name__ == "__main__":
