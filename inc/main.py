@@ -71,6 +71,21 @@ class Window:
         print "done."
 
 
+    def update_messages_colors(self):
+        pref, mt = self.app.preferences, self.ui.messageTable
+        def work(item):
+            msg = mt.itemWidget(item, 0)
+            msg.messageLabel.setStyleSheet(patchStyleSheet(
+                msg.messageLabel.styleSheet(),
+                **{'background-color':pref.bgcolor.name(),
+                   'color':pref.fgcolor.name()}))
+        for i in range(mt.topLevelItemCount()):
+            item = mt.topLevelItem(i)
+            work(item)
+            for j in range(item.childCount()):
+                work(item.child(j))
+
+
     def showConversation(self, item, _):
         mt = self.ui.messageTable
         msg = mt.itemWidget(item, 0)
@@ -131,6 +146,7 @@ class Window:
 
 
     def build_message_item(self, blob):
+        pref = self.app.preferences
         msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
         msg.id.setVisible(False)
         if blob.author_id == blob.user_id:
@@ -156,6 +172,10 @@ class Window:
             label.setMaximumSize(x, x)
             label.setStyleSheet(patchStyleSheet(
                 label.styleSheet(), **{'background-color':bg, 'color':fg}))
+        msg.messageLabel.setStyleSheet(patchStyleSheet(
+            msg.messageLabel.styleSheet(),
+            **{'background-color':pref.bgcolor.name(),
+               'color':pref.fgcolor.name()}))
         self.app.icons.do_mask_on_(msg)
         msg.avatarLabel.setStyleSheet(patchStyleSheet(
             msg.avatarLabel.styleSheet(),

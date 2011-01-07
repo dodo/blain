@@ -102,6 +102,9 @@ color:#ddd;</string>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QLabel" name="messageLabel">
+          <property name="styleSheet">
+           <string notr="true">border-radius:0.2em;</string>
+          </property>
           <property name="text">
            <string>message</string>
           </property>
