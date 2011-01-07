@@ -3,7 +3,7 @@ from os.path import join as pathjoin
 from datetime import datetime
 
 from PyQt4.uic import loadUi
-from PyQt4.Qt import QSystemTrayIcon, QTreeWidgetItem, QMargins
+from PyQt4.Qt import Qt, QSystemTrayIcon, QTreeWidgetItem, QMargins
 
 from inc.parse import patchStyleSheet, prepare_post
 
@@ -29,7 +29,9 @@ class Window:
 
 
     def setup(self):
-        self.ui.messageTable.hideColumn(0)
+        mt = self.ui.messageTable
+        mt.sortItems(1, Qt.DescendingOrder)
+        mt.hideColumn(1)
 
 
     def enable(self):
@@ -71,7 +73,7 @@ class Window:
 
     def showConversation(self, item, _):
         mt = self.ui.messageTable
-        msg = mt.itemWidget(item, 1)
+        msg = mt.itemWidget(item, 0)
         if item.isExpanded():
             msg.replyLabel.setVisible(True)
             return # allready added
@@ -83,10 +85,10 @@ class Window:
         for _blob in messages:
             blob = prepare_post(_blob.__dict__)
             msg, time = self.build_message_item(blob)
-            msg.setContentsMargins(QMargins(20,0,0,0)) # FIXME why is treewidget indentation not working ??
+            msg.replyLabel.setVisible(False) # no conversation trees possible
             i = QTreeWidgetItem(item)
-            i.setText(0, time)
-            mt.setItemWidget(i, 1, msg)
+            i.setText(1, time)
+            mt.setItemWidget(i, 0, msg)
 
 
     def logStatus(self, msg, time=5000):
@@ -98,7 +100,7 @@ class Window:
     def updateMessageView(self, maxcount = 0):
         maxcount = maxcount or 200
         mt = self.ui.messageTable
-        items = [ (n, str(i.text(0)), mt.itemWidget(i, 1), i)
+        items = [ (n, str(i.text(1)), mt.itemWidget(i, 0), i)
                   for n, i in enumerate(map(lambda n:mt.topLevelItem(n),
                               range(mt.topLevelItemCount()))) ]
         pids = [ str(item[2].id.text()) for item in items ]
@@ -118,12 +120,12 @@ class Window:
                 pids.append(blob.pid)
                 msg, time = self.build_message_item(blob)
                 i = QTreeWidgetItem(mt)
-                i.setText(0, time)
-                mt.setItemWidget(i, 1, msg)
+                i.setText(1, time)
+                mt.setItemWidget(i, 0, msg)
         # now remove the too old ones
         items.sort(key=lambda i:i[1])
         for old in list(reversed(items))[maxcount-1:] + olditems:
-            mt.removeItemWidget(old[3], 1)
+            mt.removeItemWidget(old[3], 0)
             item = old[2]
             del item
 

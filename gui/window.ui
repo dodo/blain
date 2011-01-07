@@ -44,6 +44,9 @@
       <property name="wordWrap">
        <bool>true</bool>
       </property>
+      <property name="headerHidden">
+       <bool>true</bool>
+      </property>
       <property name="columnCount">
        <number>2</number>
       </property>
@@ -73,12 +76,12 @@
       </attribute>
       <column>
        <property name="text">
-        <string>time</string>
+        <string>posts</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>1</string>
+        <string>time</string>
        </property>
       </column>
      </widget>
