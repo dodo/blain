@@ -69,6 +69,20 @@ class Databaser:
         return posts
 
 
+    def get_unread_count(self):
+        return self.db.Post.find().filter_by(unread = True).count() or None
+
+
+    def set_unread_status(self, pid, status):
+        self.db.Post.find().filter_by(pid = pid).update({'unread':status})
+        self.commit()
+
+
+    def set_all_unread_status(self, status):
+        self.db.Post.find().filter_by(unread = True).update({'unread':status})
+        self.commit()
+
+
     def get_conversation_messages(self, pid):
         Post, Conversation = self.db.Post, self.db.Conversation
         msgs, convs = [], Conversation.find().filter_by(pid = pid).all()
@@ -113,6 +127,7 @@ class Databaser:
         ids = " ".join(list(map(lambda p: str(p.pid), previous[1:])))
         Conversation(pid = previous[0].pid, ids = ids).save()
         print "conversation", previous[0].pid, "build."
+        self.app.reader.update()
 
 
     def addMessage(self, service, blob):

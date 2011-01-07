@@ -244,6 +244,7 @@ class Threader:
         print len(self.threads),"threads still running:  ",", ".\
             join(self.threads.keys()),"-"*40
         self.app.db.commit() # after addMessage
+        self.app.reader.update()
         if not self.threads:
             self.app.filters.update(False) # FIXME do incremental update
             self.app.window.updateMessageView(42)

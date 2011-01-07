@@ -132,15 +132,6 @@
     </property>
     <addaction name="actionUpdate_view"/>
    </widget>
-   <widget class="QMenu" name="menuService">
-    <property name="title">
-     <string>Service</string>
-    </property>
-    <addaction name="actionUpdate_now"/>
-    <addaction name="actionMinimize"/>
-    <addaction name="separator"/>
-    <addaction name="actionQuit"/>
-   </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>Settings</string>
@@ -151,6 +142,16 @@
     <addaction name="actionShow_statusbar"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
+   </widget>
+   <widget class="QMenu" name="menuService">
+    <property name="title">
+     <string>Service</string>
+    </property>
+    <addaction name="actionMark_all_as_read"/>
+    <addaction name="actionUpdate_now"/>
+    <addaction name="actionMinimize"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuService"/>
    <addaction name="menuTools"/>
@@ -228,6 +229,14 @@
    </property>
    <property name="text">
     <string>fetch updates</string>
+   </property>
+  </action>
+  <action name="actionMark_all_as_read">
+   <property name="text">
+    <string>mark all as read</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
    </property>
   </action>
  </widget>

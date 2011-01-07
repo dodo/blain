@@ -15,6 +15,7 @@ from inc.update import Updater
 from inc.icons import Iconer
 from inc.filters import Filterer
 from inc.thread import Threader
+from inc.reader import Reader
 
 signal(SIGINT, SIG_DFL)
 setlocale(LC_ALL, ('en','utf_8'))
@@ -30,7 +31,7 @@ print """TODO:
  - logins
  - show conversations for replied posts (posts with reply==None but in a reply by an other post)
  - interner favoriten speicher um posts als später lesen zu markieren
- - highlight unread posts and show number in logo
+ - update highlighting of all entries in list for posts with the same id
  - mark reposts (redents/retweets) and/or group them [marking done] (grouping by filter)
  - pages for posts
  - grouping filters and let the user switch between them
@@ -59,10 +60,11 @@ class Blain(QApplication):
         self.updates      =      Updater(self)
         self.icons        =       Iconer(self)
         self.threads      =     Threader(self)
+        self.reader       =       Reader(self)
 
         controllers = [self.window, self.db,  self.filters,
                        self.preferences, self.updates,
-                       self.icons, self.threads]
+                       self.icons, self.threads, self.reader]
 
         for controller in controllers:
             controller.setup()

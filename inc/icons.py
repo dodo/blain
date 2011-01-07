@@ -13,6 +13,9 @@ class Iconer:
         if not hasattr(app, 'preferences'):
             print("icons: need 'preferences' from app.")
             exit(1)
+        if not hasattr(app, 'db'):
+            print("icons: need 'db' from app.")
+            exit(1)
         self.app = app
         self.icons = {}
         self.avatar_cache = {}
@@ -55,7 +58,8 @@ class Iconer:
     def loadWindow(self):
         st = self.app.preferences.settings
         ai = self.icons['app'] = QIcon(QPixmap(
-            get_logo(dark=st.value("icon/isdark").toBool())))
+            get_logo(self.app.db.get_unread_count(),
+            dark=st.value("icon/isdark").toBool())))
         if 'tray' in self.icons:
             self.app.window.ui.setWindowIcon(ai)
             self.icons['tray'].setIcon(ai)

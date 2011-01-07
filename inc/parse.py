@@ -173,10 +173,11 @@ def parse_post(service, post):
     return {
         'pid':post.id,
         'text':parse_text(_clean_url(post.text), services[service].url),
+        'time':parse_date(post.created_at),
         'reply':post.in_reply_to_status_id,
         'plain':_clean_url(post.text),
         'source':_clean_url(post.source) or 'web',
-        'time':parse_date(post.created_at),
+        'unread':True,
         'user_id':post.user.screen_name,
         'service':service,
         'user_url':_clean_url(post.user.url),

@@ -71,19 +71,28 @@ class Window:
         print "done."
 
 
-    def update_messages_colors(self):
+    def update_messages_stylesheet(self, properties):
         pref, mt = self.app.preferences, self.ui.messageTable
         def work(item):
             msg = mt.itemWidget(item, 0)
             msg.messageLabel.setStyleSheet(patchStyleSheet(
-                msg.messageLabel.styleSheet(),
-                **{'background-color':pref.bgcolor.name(),
-                   'color':pref.fgcolor.name()}))
+                msg.messageLabel.styleSheet(), **properties))
         for i in range(mt.topLevelItemCount()):
             item = mt.topLevelItem(i)
             work(item)
             for j in range(item.childCount()):
                 work(item.child(j))
+
+
+    def update_messages_colors(self):
+        self.update_messages_stylesheet(
+            {'background-color':pref.bgcolor.name(),
+             'color':pref.fgcolor.name()})
+
+
+    def update_messages_as_read(self):
+        self.update_messages_stylesheet(
+            {'background-color':None, 'color':None})
 
 
     def showConversation(self, item, _):
@@ -172,10 +181,11 @@ class Window:
             label.setMaximumSize(x, x)
             label.setStyleSheet(patchStyleSheet(
                 label.styleSheet(), **{'background-color':bg, 'color':fg}))
-        msg.messageLabel.setStyleSheet(patchStyleSheet(
-            msg.messageLabel.styleSheet(),
-            **{'background-color':pref.bgcolor.name(),
-               'color':pref.fgcolor.name()}))
+        if blob.unread:
+            msg.messageLabel.setStyleSheet(patchStyleSheet(
+                msg.messageLabel.styleSheet(),
+                **{'background-color':pref.bgcolor.name(),
+                   'color':pref.fgcolor.name()}))
         self.app.icons.do_mask_on_(msg)
         msg.avatarLabel.setStyleSheet(patchStyleSheet(
             msg.avatarLabel.styleSheet(),

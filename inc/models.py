@@ -10,6 +10,7 @@ def setup_models(db):
             plain = 'string', # plain message text
             reply = 'integer', # pid
             source = 'string',
+            unread = 'boolean',
             service = 'string',
             user_id = 'string', # screen_name
             user_url = 'string',
