@@ -148,10 +148,10 @@ class Filterer:
             msg = QMessageBox(pref)
             msg.setIcon(QMessageBox.Critical)
             msg.setWindowTitle("Installation Error ...")
-            msg.setText("An Error occured during installation.");
-            msg.setInformativeText("Could install filter '%s'." % filter.name);
-            msg.setStandardButtons(QMessageBox.Ok);
-            msg.setDetailedText(format_exc());
+            msg.setText("An Error occured during installation.")
+            msg.setInformativeText("Could install filter '%s'." % filter.name)
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setDetailedText(format_exc())
             msg.exec_()
             return
         QMessageBox.information(pref,
