@@ -72,7 +72,7 @@ class Window:
 
 
     def update_messages_stylesheet(self, properties):
-        pref, mt = self.app.preferences, self.ui.messageTable
+        mt = self.ui.messageTable
         def work(item):
             msg = mt.itemWidget(item, 0)
             msg.messageLabel.setStyleSheet(patchStyleSheet(
@@ -85,6 +85,7 @@ class Window:
 
 
     def update_messages_colors(self):
+        pref = self.app.preferences
         self.update_messages_stylesheet(
             {'background-color':pref.bgcolor.name(),
              'color':pref.fgcolor.name()})
