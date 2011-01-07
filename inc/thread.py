@@ -207,7 +207,7 @@ class MicroblogThread(QThread):
         if self.updateusers:
             for user in self.friends.allKeys() + [self.user]:
                 self.app.updateUser.emit(self.service, user)
-        self.app.updates.updates.friends(self.service, user)
+        self.app.updates.updates.friends(self.service, self.user)
         print "done."
         self.quit()
 
@@ -266,12 +266,12 @@ class Threader:
 
     def updateMicroblogging(self, service, user, updateusers=True):
         service, user = str(service), unicode(user)
-        print "updating microblog", user, "(%s) ..." % service
-        if service in self.threads and self.threads[service].isRunning():
-            print "update %s already running" % service
-            return
-        self.threads["__%s__" % service] = MicroblogThread(
-            self.app,user,service,updateusers)
+        print "updating ", user, "(%s) ..." % service
+        id = "__%s__" % service
+        if self.check_thread(id, service, "friends"):
+            self.threads[id] = MicroblogThread(
+                self.app, user, service, updateusers)
+            self.threads[id].start()
 
 
     def start(self, *services):
