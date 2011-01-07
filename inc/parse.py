@@ -42,6 +42,7 @@ def patchStyleSheet(stylesheet, **kwargs):
 
 
 
+months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")
 
 rex = {
     'url': r'(?<!"|\()((https?|ftp|gopher|file)://(\w|\.|/|\(|\)|\?|=|%|&|:|#|_|-|~|\+)+)',
@@ -74,23 +75,26 @@ def _clean_url(url):
 
 
 def parse_date(date):
-    # splitting into time and timezone
-    tz_str = date[-10:-5]
+    date     = date.split(" ")
+    
+    # day_name = date[0] # we are not interested in that
+    month    = months.index(date[1]) + 1
+    day      = int(date[2])
+    time     = map(int, date[3].split(":"))
+    timezone = date[4]
+    year     = int(date[5])
+    hour, minute, second = time
 
-    # calculating raw time
-    strf = "%a %b %d %H:%M:%S " +tz_str+ " %Y"
-    stime = time.strptime(date, strf)
-    stamp = calendar.timegm(stime)
-
+    dt = datetime(year, month, day, hour, minute, second)
+   
     # determine timezone delta
-    hours = int(tz_str[1:3])
-    minutes = int(tz_str[3:5])
+    hours = int(timezone[1:3])
+    minutes = int(timezone[3:5])
     tz_delta = timedelta(hours=hours, minutes=minutes)
-    if tz_str[0] == '+':
+    if timezone[0] == '+':
         tz_delta *= -1
 
-    return datetime.fromtimestamp(stamp) + tz_delta
-
+    return dt + tz_delta
 
 def _parse_url(url):
     domain = url.split(':',1)[1][2:].split('/',1)
