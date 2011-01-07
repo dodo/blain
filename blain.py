@@ -28,14 +28,11 @@ print """TODO:
  - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
  - notifications
  - logins
+ - show conversations for replied posts (posts with reply==None but in a reply by an other post)
  - interner favoriten speicher um posts als später lesen zu markieren
- - conversationen ausmachbar machen
  - highlight unread posts and show number in logo
- - mark reposts (redents/retweets) and/or group them [marking done]
- - stack conversations together and show them as branch in treeview
+ - mark reposts (redents/retweets) and/or group them [marking done] (grouping by filter)
  - pages for posts
- - clean up code
- - clean up folder
  - grouping filters and let the user switch between them
    (for exmaple important posters filter group)
 """
