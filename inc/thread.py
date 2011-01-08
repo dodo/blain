@@ -337,7 +337,7 @@ class Threader:
 
     def updateMicroblogging(self, service, user, updateusers=True):
         service, user = str(service), unicode(user)
-        print "updating ", user, "(%s) ..." % service
+        print "updating ", user, "[%s] ..." % service
         id = "__%s__" % service
         if self.check_thread(id, service, "friends"):
             self.threads[id] = MicroblogThread(
@@ -370,7 +370,7 @@ class Threader:
 
 
     def start_updateGroups(self, user, *args):
-        self.updateMicroblogging(user, *args)
+        self.updateGroups(user, *args)
         self.start("%s groups" % user)
 
 

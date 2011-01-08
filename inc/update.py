@@ -33,7 +33,7 @@ class Updater:
         account_id = {}
         # thread starting functions
         self.update['user'] = app.updateUser.emit
-        self.update['group'] = app.updateGroup.emit
+        self.update['group'] = lambda *args: app.updateGroup.emit(*args[1:])
         self.update['groups'] = lambda *args: \
             app.updateGroups.emit(args[1], False, *args[2:])
         self.update['friends'] = lambda *args: \
