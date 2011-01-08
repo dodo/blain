@@ -25,7 +25,6 @@ print """TODO:
  - using models for treeview and filterlist
  - showing merged service icon for merged posts
  #- better treeview update (only insert new posts) (timer triggered?)
- - loading groups from identica
  - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
  - notifications
  - logins
@@ -46,6 +45,8 @@ class Blain(QApplication):
     killThread = pyqtSignal(str)
     addMessage = pyqtSignal(str, dict)
     updateUser = pyqtSignal(str, str)
+    updateGroup = pyqtSignal(str)
+    updateGroups = pyqtSignal(str, bool)
     updateMicroblogging = pyqtSignal(str, str, bool)
 
     def __init__(self):

@@ -167,7 +167,7 @@ def parse_image(app, service, user, url):
     return (image, url)
 
 
-def parse_post(service, post):
+def parse_post(service, source_id, post):
     _post = services[service].parse(post)
     post = drug(**_post)
     post.user = drug(**post.user)
@@ -198,6 +198,7 @@ def parse_post(service, post):
         'user_id':post.user.screen_name,
         'service':service,
         'user_url':_clean_url(post.user.url),
+        'source_id':source_id,
         'user_name':post.user.name,
         'author_id':post.author.screen_name,
         'author_url':_clean_url(post.author.url),
@@ -208,7 +209,7 @@ def parse_post(service, post):
         'by_conversation':False,
         'user_profile_url':_clean_url(post.user.profile_url),
         'profile_image_url':_clean_url(post.user.profile_image_url),
-        'author_profile_url':(post.author.profile_url)}
+        'author_profile_url':_clean_url(post.author.profile_url)}
 
 
 def prepare_post(blob):
@@ -230,7 +231,7 @@ def pythonize_post(blob):
     blob = dict([(str(k),blob[k]) for k in blob])
     for k in ['text','plain','source','service','user_id','user_url',
                 'user_name','user_fgcolor','user_bgcolor','user_profile_url',
-                'profile_image_url', 'author_name', 'author_id',
+                'profile_image_url', 'author_name', 'author_id', "source_id",
                 'author_url', 'author_profile_url', 'replied_user']:
         if blob[k]:
             blob[k] = unicode(blob[k])

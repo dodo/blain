@@ -14,6 +14,7 @@ def setup_models(db):
             service = 'string',
             user_id = 'string', # screen_name
             user_url = 'string',
+            source_id = 'string', # user.screen_name or group.nickname
             user_name = 'string',
             author_id = 'string',
             author_url = 'string',

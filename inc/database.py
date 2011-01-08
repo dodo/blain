@@ -41,10 +41,10 @@ class Databaser:
             limit(maxcount).all()
 
 
-    def get_knownids(self, user):
+    def get_knownids(self, sid):
         Post = self.db.Post
         knownids = Post.find(Post.pid).order_by(Post.time.desc()).\
-            filter_by(user_id = user).limit(2000).all()
+            filter_by(source_id = sid).limit(2000).all()
         knownids = list(map(lambda i:i.pid, knownids))
         return knownids
 
@@ -117,7 +117,8 @@ class Databaser:
                     print_exc()
                     break
                 if not status: break # nothing fetched or empty list
-                update = parse_post(service, status[0])
+                update = parse_post(service, "", status[0])
+                update['source_id'] = update['user_id']
                 print service, "con", update['pid']
                 update['by_conversation'] = True
                 Post(**update).add()

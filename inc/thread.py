@@ -20,7 +20,7 @@ def pages():
         }
 
 
-def get_page(service, user, count, page, opts={}):
+def get_page(method, service, user, count, page, opts={}):
     options = {
             'page': page,
             'count': count,
@@ -29,8 +29,9 @@ def get_page(service, user, count, page, opts={}):
             }
     options.update(opts)
     try:
-        return api_call(service, 'statuses/user_timeline', options), True
+        return api_call(service, method, options), True
     except:
+        print "Error while getting user (%s, %s, %i):" % (service, user, page)
         print_exc()
         return [], False
 
@@ -38,13 +39,17 @@ def get_page(service, user, count, page, opts={}):
 
 class UserStatusThread(QThread):
 
-    def __init__(self, app, id, user, service, knownids):
+    def __init__(self, app, id, user, service, knownids,
+                 update_method, user_method, api_method):
         QThread.__init__(self, app)
         self.id = id
         self.app = app
         self.user = user
         self.service = service
         self.knownids = knownids
+        self.api_method = api_method
+        self.user_method = user_method
+        self.update = getattr(self.app.updates, update_method)
 
     def run(self):
         if not self.service or not self.user:
@@ -60,18 +65,22 @@ class UserStatusThread(QThread):
         page = 1
         step = 200
 
+        servicecount = 4223 # meh :/
+        protected = False
         new_statuses = None
 
         try:
-            res = api_call(self.service, 'users/show', {'id': self.user})
-            protected = res['protected']
-            servicecount = res['statuses_count']
+            res = api_call(self.service, self.user_method, {'id': self.user})
+            if 'protected' in res:
+                protected = res['protected']
+            if 'statuses_count' in res:
+                servicecount = res['statuses_count']
             ok = True
         except:
             print_exc()
             protected = True # by error :P
         if protected:
-            self.app.updates.updates.user(self.service, self.user, 0, ok)
+            self.update(self.service, self.user, 0, ok)
             self.app.killThread.emit(self.id)
             self.quit()
             return
@@ -79,8 +88,9 @@ class UserStatusThread(QThread):
             fetch_count = min(n==1 and int(step/10) or step, servicecount)
             print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
                 (n, fetch_count, page, servicecount, self.service),"[%i]"%trys
-            new_statuses,new_ok = get_page(self.service, self.user, fetch_count,
-                page, page == 2 and _id and {'max_id':_id} or {})
+            new_statuses,new_ok = get_page(self.api_method,
+                self.service, self.user, fetch_count, page,
+                page == 2 and _id and {'max_id':_id} or {})
             ok = ok and new_ok
             stop = False
             if n > 1:
@@ -96,7 +106,7 @@ class UserStatusThread(QThread):
                 else:
                     print id
                     i += 1
-                    update = parse_post(self.service, status)
+                    update = parse_post(self.service, self.user, status)
                     self.knownids.append(status['id'])
                     self.app.addMessage.emit(self.service, update)
             n += 1
@@ -111,7 +121,7 @@ class UserStatusThread(QThread):
         else:
             self.app.logStatus.emit("Error: no results for {0} on {1}!".\
                 format(self.user, self.service))
-        self.app.updates.updates.user(self.service, self.user, i, ok)
+        self.update(self.service, self.user, i, ok)
         print self.service + " done."
         self.app.killThread.emit(self.id)
         self.quit()
@@ -144,12 +154,23 @@ def get_friends(service, user, page):
     try:
         return pages[service].get(api_call(service, 'statuses/friends', options))
     except:
+        print "Error while getting friends (%s, %s, %i):"%(service, user, page)
         print_exc()
         return []
 
 
 def next_page(service, prev, result):
     return pages[service].next(prev, result)
+
+
+def get_group(user):
+    try:
+        return api_call('identica', 'statusnet/groups/list', {'id':user})
+    except:
+        print "Error while getting group (%s):" % user
+        print_exc()
+        return None
+
 
 
 
@@ -213,6 +234,53 @@ class MicroblogThread(QThread):
 
 
 
+class GroupsThread(QThread):
+
+    def __init__(self, app, user, updategroups = True):
+        QThread.__init__(self, app)
+        self.app = app
+        self.user = user
+        self.updategroups = updategroups
+        self.groups = QSettings("blain", "%s-groups" % user)
+
+
+    def run(self):
+        if not self.user:
+            self.quit()
+            return
+        trys = 0
+        new_groups = None
+        while trys < 4:
+            trys += 1
+            new_groups = get_group(self.user)
+            if new_groups is not None:
+                break
+        if new_groups is None:
+            self.end()
+            return
+        for group in new_groups:
+            id = str(group['nickname'])
+            if self.groups.contains(id):
+                print id, "(found)"
+            else:
+                print id, "(new)"
+            dump = json.dumps(clean_urls(group))
+            self.groups.setValue(id, dump)
+        print "groups list up-to-date. (%s)" % self.user
+        self.end()
+
+    def end(self):
+        self.app.killThread.emit("%s groups" % self.user)
+        # update all groups
+        if self.updategroups:
+            for group in self.groups.allKeys():
+                self.app.updateGroup.emit(group)
+        self.app.updates.updates.groups(self.user)
+        print "done."
+        self.quit()
+
+
+
 class Threader:
 
     def __init__(self, app):
@@ -223,7 +291,9 @@ class Threader:
     def connect(self):
         self.app.killThread.connect(self.killThread)
         self.app.updateUser.connect(self.updateUser)
-        self.app.updateMicroblogging.connect(self.updateMicroblogging)
+        self.app.updateGroup.connect(self.updateGroup)
+        self.app.updateGroups.connect(self.start_updateGroups)
+        self.app.updateMicroblogging.connect(self.start_updateMicroblogging)
 
 
     def setup(self):
@@ -260,7 +330,8 @@ class Threader:
         if self.check_thread(id, service, user):
             knownids = self.app.db.get_knownids(user)
             self.threads[id] = UserStatusThread(
-                self.app, id, user, service, knownids)
+                self.app, id, user, service, knownids,
+                "user", 'users/show', 'statuses/user_timeline')
             self.threads[id].start()
 
 
@@ -271,15 +342,45 @@ class Threader:
         if self.check_thread(id, service, "friends"):
             self.threads[id] = MicroblogThread(
                 self.app, user, service, updateusers)
+
+
+    def start_updateMicroblogging(self, service, *args):
+        self.updateMicroblogging(service, *args)
+        self.start("__%s__" % service)
+
+
+    def updateGroup(self, group):
+        group = unicode(group)
+        print "updating group", group, "..."
+        id = " %s group" % group
+        if self.check_thread(id, "identica", group):
+            knownids = self.app.db.get_knownids(group)
+            self.threads[id] = UserStatusThread(
+                self.app, id, group, "identica", knownids,
+                "group", 'statusnet/groups/show', 'statusnet/groups/timeline')
             self.threads[id].start()
 
 
+    def updateGroups(self, user, updategroups=True):
+        user = unicode(user)
+        print "updating ", user, "groups ..."
+        id = "%s groups" % user
+        if self.check_thread(id, "identica", "groups"):
+            self.threads[id] = GroupsThread(self.app, user, updategroups)
+
+
+    def start_updateGroups(self, user, *args):
+        self.updateMicroblogging(user, *args)
+        self.start("%s groups" % user)
+
+
     def start(self, *services):
+        print "starting", ", ".join(services)
         for service in services:
-            if "__%s__" % service not in self.threads:
-                print "update __%s__ isn running" % service
+            if service not in self.threads:
+                print "unknown thread %s" % service
                 return
-            self.threads["__%s__" % service].start()
+            self.threads[service].start()
 
 
 
