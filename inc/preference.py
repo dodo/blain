@@ -18,12 +18,12 @@ class PreferencesDialog(QDialog):
         self.darkradioButton.setIcon(QIcon(QPixmap(get_logo())))
         self.lightradioButton.setIcon(QIcon(QPixmap(get_logo(dark=False))))
 
-
     def closeEvent(self, event):
         self.hide()
-        self.app.window.enable()
         event.ignore()
 
+    def hideEvent(self, event):
+        self.app.window.enable()
 
 
 class Preferencer:
