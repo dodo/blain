@@ -70,13 +70,25 @@ def services():
 
 def _clean_url(url):
     if url:
-        url = unicode(url).replace("\/", "/")
+        while "\/" in url:
+            url = unicode(url).replace("\/", "/")
     return url
+
+
+def clean_urls(blob):
+    if isinstance(blob, str):
+        return _clean_url(blob)
+    elif not isinstance(blob, dict):
+        return blob # nothing to do
+    blob = dict(blob)
+    for key, value in blob.items():
+        blob[key] = clean_urls(value)
+    return blob
 
 
 def parse_date(date):
     date     = date.split(" ")
-    
+
     # day_name = date[0] # we are not interested in that
     month    = months.index(date[1]) + 1
     day      = int(date[2])
@@ -86,7 +98,7 @@ def parse_date(date):
     hour, minute, second = time
 
     dt = datetime(year, month, day, hour, minute, second)
-   
+
     # determine timezone delta
     hours = int(timezone[1:3])
     minutes = int(timezone[3:5])
@@ -95,6 +107,7 @@ def parse_date(date):
         tz_delta *= -1
 
     return dt + tz_delta
+
 
 def _parse_url(url):
     domain = url.split(':',1)[1][2:].split('/',1)

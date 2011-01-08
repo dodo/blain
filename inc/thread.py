@@ -5,7 +5,7 @@ from PyQt4.Qt import QThread, QSettings
 
 from inc.microblogging import api_call
 from inc.json_hack import json
-from inc.parse import drug, parse_post, parse_date, pythonize_post
+from inc.parse import drug, parse_post, parse_date, pythonize_post, clean_urls
 
 MAX_PAGE_COUNT = 200
 
@@ -194,7 +194,7 @@ class MicroblogThread(QThread):
                     stop = True
                 else:
                     print id, "(new)", self.service
-                dump = json.dumps(friend)
+                dump = json.dumps(clean_urls(friend))
                 self.friends.setValue(id, dump)
             if stop or trys > 3: break
             #self.yieldCurrentThread()
