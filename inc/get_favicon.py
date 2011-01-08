@@ -1,9 +1,9 @@
 import sys
 import shutil
 import urllib2
-import lxml.html
 from traceback import print_exc
 
+lxml = None
 HEADERS = {
     'User-Agent': 'urllib2 (Python %s)' % sys.version.split()[0],
     'Connection': 'close',
@@ -20,7 +20,23 @@ def get_image(url):
 
 
 def get_favicon(url, path=None):
+    global lxml
+    def has_lxml():
+        global lxml
+        if lxml is None:
+            try:
+                import lxml as _lxml
+                lxml = lxml
+                return True
+            except:
+                from warnings import warn
+                warn("lxml not found, so dont blame me when favicon loading fails!")
+                lxml = False
+                return False
+        return lxml != False
     def guess():
+        if not has_lxml():
+            return None
         icon = None
         request = urllib2.Request(url, headers=HEADERS)
         try:

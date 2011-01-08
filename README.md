@@ -8,9 +8,9 @@ Dependencies
 ------------
 
 * PyQt4 [python-qt4]
-* lxml [python-lxml]
 * SqlAlchemy [python-sqlalchemy]
 * Python 2.x [python]
+* lxml [python-lxml] (optional, but recommended)
 * python-cjson [python-cjson] (optional, but recommended)
 
 
