@@ -2,10 +2,32 @@
 from os.path import join as pathjoin
 from datetime import datetime
 
-from PyQt4.uic import loadUi
+from PyQt4.uic import loadUi, loadUiType
 from PyQt4.Qt import Qt, QSystemTrayIcon, QTreeWidgetItem, QPalette
 
 from inc.parse import patchStyleSheet, prepare_post
+
+
+
+class UiLoader:
+
+    def __init__(self, filename):
+        self.Form, self.Base = loadUiType(filename)
+
+    def new(self):
+        Base, Form = self.Base, self.Form
+
+        form = Form()
+        base = Base()
+        oldkeys = form.__dict__.keys()
+        form.setupUi(base)
+        newkeys = form.__dict__.keys()
+        for key in oldkeys:
+            newkeys.remove(key)
+        for key in newkeys:
+            setattr(base, key, getattr(form, key))
+        return base
+
 
 
 class Window:
@@ -13,6 +35,7 @@ class Window:
     def __init__(self, app):
         self.app = app
         self.ui = loadUi(pathjoin(app.cwd, "gui", "window.ui"))
+        self.Message = UiLoader(pathjoin(app.cwd, "gui", "message.ui"))
 
 
     def connect(self):
@@ -157,7 +180,7 @@ class Window:
 
     def build_message_item(self, blob):
         pref = self.app.preferences
-        msg = loadUi(pathjoin(self.app.cwd, "gui", "message.ui")) # TODO chache this
+        msg = self.Message.new()
         msg.id.setVisible(False)
         if blob.author_id == blob.user_id:
             msg.repeatLabel.setVisible(False)
