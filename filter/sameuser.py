@@ -7,12 +7,12 @@ No duplicated messages will be displayed.
 
 
 def filter_fun(st, posts):
-    res, texts = [], []
+    res, texts, patched = [], [], []
     twitterid  = unicode(st.value('twitterid' ).toString())
     identicaid = unicode(st.value('identicaid').toString())
     for post in reversed(posts):
-        if (post.service == "twitter"  and post.user_id == twitterid) or \
-           (post.service == "identica" and post.user_id == identicaid):
+        if (post.service.startswith("twitter")  and post.user_id == twitterid) or\
+           (post.service.startswith("identica") and post.user_id == identicaid):
             text = post.plain.\
                 replace("!", "#").\
                 replace(">","&gt;").\
@@ -20,7 +20,15 @@ def filter_fun(st, posts):
             if text not in texts:
                 texts.append(text)
                 res.append(post)
+            else:
+                i = texts.index(text)
+                if i not in patched:
+                    if len(post.service) < 9:
+                        post.service += res[i].service
+                    patched.append(i)
+                    res[i] = post
         else:
+            texts.append(None)
             res.append(post)
     return res
 

@@ -23,7 +23,6 @@ setlocale(LC_ALL, ('en','utf_8'))
 
 print """TODO:
  - using models for treeview and filterlist
- - showing merged service icon for merged posts
  #- better treeview update (only insert new posts) (timer triggered?)
  - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
  - notifications

@@ -1,10 +1,35 @@
 
 
-from PyQt4.Qt import QSettings, QIcon, QPixmap, QImage, QSystemTrayIcon, QColor
+from PyQt4.Qt import QSettings, QIcon, QPixmap, QImage,\
+                     QSystemTrayIcon, QColor, QRectF, QPainter
 
 from inc.get_favicon import get_favicon
 from inc.parse import patchStyleSheet, parse_image
 from inc.ascii import get_logo
+
+
+def magnify_icons(a, b):
+    a = a.pixmap(16,16)
+    b = b.pixmap(16,16)
+    img = [QPixmap(16,16), QPixmap(16,16)]
+    for i in img:
+        i.fill(QColor(0, 0, 0, 0))
+        g = a.toImage()
+        for n in range(256):
+            x, y = n%16, n//16
+            c = QColor(g.pixel(x, y))
+            s = (c.redF() + c.greenF() + c.blueF()) / 3.0
+            l = s * 4.2
+            if l > 1.0: l = 1.0
+            c.setRgbF(s, s, s, l)
+            g.setPixel(x, y, c.rgba())
+        p = QPainter()
+        p.begin(i)
+        p.drawImage( QRectF(6, 0,  8, 16), g, QRectF(0, 0, 10, 16))
+        p.drawPixmap(QRectF(0, 0, 10, 16), b, QRectF(6, 1,  10, 15))
+        p.end()
+        a, b = b, a
+    return tuple(map(QIcon, img))
 
 
 class Iconer:
@@ -29,10 +54,13 @@ class Iconer:
 
     def setup(self):
         st = self.app.preferences.settings
-        self.icons['identica'] = self.get_service_icon(
+        a = self.icons['identica'] = self.get_service_icon(
             0, "identica", "http://identi.ca")
-        self.icons['twitter']  = self.get_service_icon(
+        b = self.icons['twitter']  = self.get_service_icon(
             1, "twitter", "http://twitter.com")
+        img = magnify_icons(a, b)
+        self.icons['twitteridentica'] = img[0]
+        self.icons['identicatwitter'] = img[1]
         if not st.contains("icon/dark"):
             st.setValue("icon/dark", True)
         self.update_window_icon()
