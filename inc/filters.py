@@ -30,8 +30,7 @@ class Filterer:
 
 
     def connect(self):
-        # no gui
-        pass
+        pass # all gui in preferences
 
 
     def setup(self):
@@ -182,8 +181,8 @@ class Filterer:
             pref.filterList.takeItem(n)
             c = st.value('count', 0).toInt()[0] - 1
             if n == c:
-                self._instances[0].pop()
-                self._instances[1].pop()
+                for i in range(2):
+                    self._instances[i].pop()
             for i in range(n, c):
                 self._instances[0][i] = hs = self._instances[0][i+1]
                 self._instances[1][i] = id = self._instances[1][i+1]
@@ -194,5 +193,14 @@ class Filterer:
             st.setValue('count', c)
             if exists(fst.fileName()):
                 fileremove(fst.fileName())
+
+
+    def move(self, from_row, to_row):
+        st = self.settings
+        for i in range(2):
+            self._instances[i].insert(to_row, self._instances[i].pop(from_row))
+        for i in range(min(from_row, to_row), max(from_row, to_row) + 1):
+            st.setValue("id"   + str(i), self._instances[1][i])
+            st.setValue("hash" + str(i), self._instances[0][i])
 
 

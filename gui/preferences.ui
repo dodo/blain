@@ -146,7 +146,24 @@
               </attribute>
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <item>
-                <widget class="QListWidget" name="filterList"/>
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>DragnDrop for changing filters order.</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="filterList">
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
+                 <property name="dragEnabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="dragDropMode">
+                  <enum>QAbstractItemView::InternalMove</enum>
+                 </property>
+                </widget>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_9">

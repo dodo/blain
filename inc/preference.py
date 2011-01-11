@@ -3,7 +3,7 @@ from os.path import join as pathjoin
 
 from PyQt4.uic import loadUi
 from PyQt4.Qt import QSettings, QDialog, QIcon, QPixmap, QDialogButtonBox,\
-                     QColor, QColorDialog
+                     QColor, QColorDialog, QEvent
 
 from inc.ascii import get_logo
 from inc.parse import drug
@@ -14,9 +14,12 @@ class PreferencesDialog(QDialog):
     def __init__(self, app, *args):
         QDialog.__init__(self, *args)
         self.app = app
+        self.row = -1
         loadUi(pathjoin(app.cwd, "gui", "preferences.ui"), self)
         self.darkradioButton.setIcon(QIcon(QPixmap(get_logo())))
         self.lightradioButton.setIcon(QIcon(QPixmap(get_logo(dark=False))))
+        self.filterList.currentRowChanged.connect(self.previousRow)
+        self.filterList.installEventFilter(self)
 
     def closeEvent(self, event):
         self.hide()
@@ -24,6 +27,18 @@ class PreferencesDialog(QDialog):
 
     def hideEvent(self, event):
         self.app.window.enable()
+
+    def eventFilter(self, sender, event):
+        # only possibility to get an event on internalmove from qlistwidget
+        if event.type() == QEvent.ChildRemoved:
+            cur = self.filterList.currentRow()
+            self.app.filters.move(self.row, cur)
+            self.row = cur
+        return False # no interput
+
+    def previousRow(self, row):
+        self.row = row
+
 
 
 class Preferencer:
