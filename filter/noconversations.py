@@ -6,7 +6,7 @@ Hide Posts that are answers on other Posts.
 
 
 def filter_fun(settings, posts):
-    return filter(lambda p: p.reply is None, posts)
+    return [ post for post in posts if post.reply is None ]
 
 
 def install(settings, config):
