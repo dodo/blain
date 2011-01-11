@@ -26,7 +26,7 @@ def get_favicon(url, path=None):
         if lxml is None:
             try:
                 import lxml as _lxml
-                lxml = lxml
+                lxml = _lxml
                 return True
             except:
                 from warnings import warn
