@@ -157,9 +157,7 @@ class Filterer:
             msg.setDetailedText(format_exc())
             msg.exec_()
             return
-        QMessageBox.information(pref,
-            "Installling "+filter.name+" ...",
-            "Filter '%s' successful installed." % filter.name)
+        # success
         self.add_filter_instance(filter, hash)
         pref.filtersComboBox_new.currentIndexChanged.emit(curi)
         pref.filtertabWidget.setCurrentIndex(0)
