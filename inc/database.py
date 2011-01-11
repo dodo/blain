@@ -71,8 +71,9 @@ class Databaser:
                     Post.time.desc()).offset(got).limit(400).all()
                 got += len(new)
                 posts += apply(new)
-        list(map(lambda p: Cache(pid=p.id).add(), posts))
-        self.db.session.commit()
+        for post in posts:
+            Cache(pid = post.id).add()
+        self.commit()
         return posts
 
 
