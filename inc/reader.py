@@ -47,6 +47,8 @@ class Reader:
     def mark_as_read(self):
         mt = self.app.window.ui.messageTable
         msg = mt.itemWidget(mt.currentItem(), 0)
+        if msg is None:
+            return # messageTable changed to empty list
         if "color" in msg.messageLabel.styleSheet():
             id = int(msg.id.text())
             self.app.window.update_messages_stylesheet(
