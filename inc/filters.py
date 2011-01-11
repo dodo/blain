@@ -181,6 +181,9 @@ class Filterer:
           (filter.name, filter.instance_description(fst)), 0, 1, 2):
             pref.filterList.takeItem(n)
             c = st.value('count', 0).toInt()[0] - 1
+            if n == c:
+                self._instances[0].pop()
+                self._instances[1].pop()
             for i in range(n, c):
                 self._instances[0][i] = hs = self._instances[0][i+1]
                 self._instances[1][i] = id = self._instances[1][i+1]
@@ -189,6 +192,7 @@ class Filterer:
             st.remove("id"   + str(c))
             st.remove("hash" + str(c))
             st.setValue('count', c)
-            fileremove(fst.fileName())
+            if exists(fst.fileName()):
+                fileremove(fst.fileName())
 
 
