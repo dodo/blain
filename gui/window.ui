@@ -148,6 +148,7 @@
      <string>Service</string>
     </property>
     <addaction name="actionMark_all_as_read"/>
+    <addaction name="actionUndo_mark"/>
     <addaction name="actionUpdate_now"/>
     <addaction name="actionMinimize"/>
     <addaction name="separator"/>
@@ -237,6 +238,14 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+  </action>
+  <action name="actionUndo_mark">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>no posts to reset</string>
    </property>
   </action>
  </widget>

@@ -30,6 +30,9 @@ def setup_models(db):
         model(db, "Cache",
             pid = "integer", # Post.id
             ),
+        model(db, "UnreadCache",
+            pid = "integer", # Post.id
+            ),
         model(db, "Conversation",
             pid = 'integer',
             ids = 'string', # space seperated

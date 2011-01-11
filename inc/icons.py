@@ -64,7 +64,7 @@ class Iconer:
         if not st.contains("icon/dark"):
             st.setValue("icon/dark", True)
         self.update_window_icon()
-        self.update_tray()
+        #self.update_tray() # by reader
 
 
     def get_service_icon(self, id, name, url):
@@ -91,10 +91,10 @@ class Iconer:
             get_logo(dark=st.value("icon/isdark").toBool()))))
 
 
-    def update_tray(self):
+    def update_tray(self, count = None):
         st = self.app.preferences.settings
         ai = self.icons['app'] = QIcon(QPixmap(
-            get_logo(self.app.db.get_unread_count(),
+            get_logo(count or self.app.db.get_unread_count(),
             dark=st.value("icon/isdark").toBool())))
         if 'tray' in self.icons:
             self.icons['tray'].setIcon(ai)

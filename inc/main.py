@@ -94,10 +94,12 @@ class Window:
         print "done."
 
 
-    def update_messages_stylesheet(self, properties):
+    def update_messages_stylesheet(self, properties, ids = None):
         mt = self.ui.messageTable
         def work(item):
             msg = mt.itemWidget(item, 0)
+            if ids is not None and int(msg.id.text()) not in ids:
+                return # skip it
             msg.messageLabel.setStyleSheet(patchStyleSheet(
                 msg.messageLabel.styleSheet(), **properties))
         for i in range(mt.topLevelItemCount()):
@@ -105,18 +107,6 @@ class Window:
             work(item)
             for j in range(item.childCount()):
                 work(item.child(j))
-
-
-    def update_messages_colors(self):
-        pref = self.app.preferences
-        self.update_messages_stylesheet(
-            {'background-color':pref.bgcolor.name(),
-             'color':pref.fgcolor.name()})
-
-
-    def update_messages_as_read(self):
-        self.update_messages_stylesheet(
-            {'background-color':None, 'color':None})
 
 
     def showConversation(self, item, _):

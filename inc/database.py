@@ -34,7 +34,14 @@ class Databaser:
         self.db.session.commit()
 
 
-    def get_messages_from_cache(self, maxcount):
+    def get_cached_unread(self, maxcount = 200):
+        Post, Cache = self.db.Post, self.db.Cache
+        return Post.find().order_by(Post.time.desc()).filter_by(unread = True).\
+            filter(Post.id.in_(self.db.session.query(Cache.pid))).\
+            limit(maxcount).all()
+
+
+    def get_messages_from_cache(self, maxcount = 200):
         Post, Cache = self.db.Post, self.db.Cache
         return Post.find().order_by(Post.time.desc()).\
             filter(Post.id.in_(self.db.session.query(Cache.pid))).\
@@ -73,14 +80,32 @@ class Databaser:
         return self.db.Post.find().filter_by(unread = True).count() or None
 
 
+    def get_unread_marked_count(self):
+        return self.db.UnreadCache.find().count() or None
+
+
     def set_unread_status(self, pid, status):
         self.db.Post.find().filter_by(pid = pid).update({'unread':status})
         self.commit()
 
 
     def set_all_unread_status(self, status):
-        self.db.Post.find().filter_by(unread = True).update({'unread':status})
+        Post, UnreadCache = self.db.Post, self.db.UnreadCache
+        UnreadCache.find().delete()
+        postids = Post.find(Post.id).filter_by(unread = True).all()
+        Post.find().filter_by(unread = True).update({'unread':status})
+        for post in postids:
+            UnreadCache(pid = post.id).add()
         self.commit()
+
+
+    def reset_all_unread_status(self, status):
+        Post, UnreadCache = self.db.Post, self.db.UnreadCache
+        Post.find().filter(Post.id.in_(self.db.session.query(
+            UnreadCache.pid))).update({'unread':status}, 'fetch')
+        UnreadCache.find().delete()
+        self.commit()
+
 
 
     def get_conversation_messages(self, pid):

@@ -29,7 +29,6 @@ print """TODO:
  - logins
  - show conversations for replied posts (posts with reply==None but in a reply by an other post)
  - interner favoriten speicher um posts als später lesen zu markieren
- - update highlighting of all entries in list for posts with the same id
  - mark reposts (redents/retweets) and/or group them [marking done] (grouping by filter)
  - pages for posts
  - grouping filters and let the user switch between them

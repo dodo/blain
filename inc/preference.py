@@ -94,7 +94,7 @@ class Preferencer:
         self.app.icons.update_tray()
         if self.fgcolor != self.old.fgcolor or self.bgcolor != self.old.bgcolor:
             self.old = drug(fgcolor = self.fgcolor, bgcolor = self.bgcolor)
-            self.app.window.update_messages_colors()
+            self.app.reader.update_messages_colors()
 
 
     def load(self):
