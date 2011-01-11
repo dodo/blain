@@ -119,9 +119,12 @@ class Filterer:
         if hash not in self._instances[0]:
             self._instances[0].append(hash)
             self._instances[1].append(filter.id)
-            self.app.preferences.ui.filterList.addItem(filter.name + ": " + \
-                str(filter.instance_description(
-                    self.filter_settings(filter.id, hash))))
+            desc = str(filter.instance_description(
+                self.filter_settings(filter.id, hash)))
+            text = filter.name
+            if desc:
+                text = "{0}: {1}".format(text, desc)
+            self.app.preferences.ui.filterList.addItem(text)
 
 
     def add_filter_instance(self, filter, hash):
