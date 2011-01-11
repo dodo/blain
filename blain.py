@@ -16,6 +16,7 @@ from inc.icons import Iconer
 from inc.filters import Filterer
 from inc.thread import Threader
 from inc.reader import Reader
+from inc.notification import Notifier
 
 signal(SIGINT, SIG_DFL)
 setlocale(LC_ALL, ('en','utf_8'))
@@ -25,7 +26,6 @@ print """TODO:
  - using models for treeview and filterlist
  #- better treeview update (only insert new posts) (timer triggered?)
  - do smth with twitter lists (dont know what this is .. but .. i will do science on it!)
- - notifications
  - logins
  - show conversations for replied posts (posts with reply==None but in a reply by an other post)
  - interner favoriten speicher um posts als später lesen zu markieren
@@ -59,10 +59,11 @@ class Blain(QApplication):
         self.icons        =       Iconer(self)
         self.threads      =     Threader(self)
         self.reader       =       Reader(self)
+        self.notifier     =     Notifier(self)
 
         controllers = [self.window, self.db,  self.filters,
-                       self.preferences, self.updates,
-                       self.icons, self.threads, self.reader]
+                       self.preferences, self.updates, self.icons,
+                       self.threads, self.reader, self.notifier]
 
         for controller in controllers:
             controller.setup()

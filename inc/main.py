@@ -45,7 +45,6 @@ class Window:
         ui.messageEdit.textChanged.connect(self.sendButtonController)
         ui.actionMinimize.triggered.connect(ui.hide)
         ui.actionQuit.triggered.connect(self.app.quit)
-        ui.actionSilence.triggered.connect(self.test)
         ui.actionUpdate_view.triggered.connect(self.updateMessageView)
         ui.messageTable.itemDoubleClicked.connect(self.showConversation)
         app.logStatus.connect(self.logStatus)
@@ -85,12 +84,13 @@ class Window:
 
 
     def test(self):
-        from inc.update import get_friends, get_user
-        from pprint import pprint
+        #from inc.update import get_friends, get_user
+        #from pprint import pprint
         #pprint(get_friends('twitter', 'dodothelast'))
         #pprint(get_friends('identica', 'dodothelast'))
-        pprint(get_user('twitter', 'dodothelast'))
-        pprint(get_user('identica', 'dodothelast'))
+        #pprint(get_user('twitter', 'dodothelast'))
+        #pprint(get_user('identica', 'dodothelast'))
+        self.app.notifier.notify("This is a great Test Message!!1!")
         print "done."
 
 

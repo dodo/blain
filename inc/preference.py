@@ -105,6 +105,7 @@ class Preferencer:
         st.setValue("icon/isdark", ui.darkradioButton.isChecked())
         st.setValue("color/messages/fg", self.fgcolor.name())
         st.setValue("color/messages/bg", self.bgcolor.name())
+        self.app.notifier.saveRadioButtons()
         self.app.icons.update_window_icon()
         self.app.icons.update_tray()
         if self.fgcolor != self.old.fgcolor or self.bgcolor != self.old.bgcolor:
@@ -127,6 +128,8 @@ class Preferencer:
         ui.lightradioButton.setChecked(not b)
         ui.fgcolorButton.setStyleSheet("background-color:"+self.fgcolor.name())
         ui.bgcolorButton.setStyleSheet("background-color:"+self.bgcolor.name())
+        if self.app.notifier.buttons:
+            self.app.notifier.resetRadioButtons()
 
 
     def change_fgcolor(self):
