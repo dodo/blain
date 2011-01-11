@@ -142,7 +142,7 @@ class Updater:
     def group(self, _, group, count , ok): # new_updates count
         if count:
             self.app.notifier.notify_by_mode(
-                amount = count, user = "group " + user)
+                amount = count, user = "group " + group)
         user = unicode(group)
         self.new_updates("identica", group,
             time() - (not ok) * 5 - count / len(self.timers),
