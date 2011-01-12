@@ -25,7 +25,7 @@ class Updater:
         win.actionUpdate_now.triggered.connect(self.all)
         self.timer.timeout.connect(self.timer_step)
         self.app.window.ui.actionDoUpdates.setChecked(
-            self.app.preferences.settings.value("timer/active",True).toBool())
+            self.app.preferences.settings.value("timer/active",False).toBool())
 
 
     def setup(self):

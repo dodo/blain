@@ -88,7 +88,7 @@ class Iconer:
     def update_window_icon(self):
         st = self.app.preferences.settings
         self.app.window.ui.setWindowIcon(QIcon(QPixmap(
-            get_logo(dark=st.value("icon/isdark").toBool()))))
+            get_logo(dark=st.value("icon/isdark", True).toBool()))))
 
 
     def update_tray(self, count = None):
