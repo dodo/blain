@@ -13,7 +13,8 @@ Dependencies
 * lxml [python-lxml] (optional, but recommended)
 * python-cjson [python-cjson] (optional, but recommended)
 
-
+** apt-get install python python-qt4 python-sqlalchemy python-lxml python-cjson python-dbus
+** apt://python,python-qt4,python-sqlalchemy,python-lxml,python-cjson
 TODO
 ----
 
