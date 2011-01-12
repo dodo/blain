@@ -3,7 +3,6 @@
 
 import sys
 from signal import signal, SIGINT, SIG_DFL
-from locale import setlocale, LC_ALL
 from os.path import dirname, realpath
 
 from PyQt4.Qt import QApplication, pyqtSignal
@@ -19,7 +18,6 @@ from inc.reader import Reader
 from inc.notification import Notifier
 
 signal(SIGINT, SIG_DFL)
-setlocale(LC_ALL, ('en','utf_8'))
 
 
 print """TODO:

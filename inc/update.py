@@ -80,7 +80,7 @@ class Updater:
         for service in new_friends:
             timers.append("{0},friends,{1},".format(time(), service))
         # add groups update timer
-        if new_groups:
+        if new_groups and 'identica' in account_id:
             timers.append("{0},groups,,{1}".\
                 format(time(), account_id['identica']))
         # add new groups
