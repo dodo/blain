@@ -11,11 +11,11 @@ Dependencies
 * SqlAlchemy [python-sqlalchemy]
 * Python 2.x [python]
 * lxml [python-lxml] (optional)
-* dbus [python-dbus] (optional, but recommended)
+*k dbus [python-dbus] (optional, but recommended)
 * python-cjson [python-cjson] (optional, but recommended)
 
 ** apt-get install python python-qt4 python-sqlalchemy python-lxml python-cjson python-dbus
-** apt://python,python-qt4,python-sqlalchemy,python-lxml,python-cjson
+*[apt-link](apt://python,python-qt4,python-sqlalchemy,python-lxml,python-cjson)
 TODO
 ----
 
