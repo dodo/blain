@@ -24,7 +24,10 @@ def filter_fun(st, posts):
                 i = texts.index(text)
                 if i not in patched:
                     if len(post.service) < 9:
-                        post.service += res[i].service
+                        if len(res[i].service) > 8:
+                            post.service = res[i].service
+                        else:
+                            post.service += res[i].service
                     patched.append(i)
                     res[i] = post
         else:
