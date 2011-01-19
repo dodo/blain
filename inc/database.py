@@ -161,5 +161,7 @@ class Databaser:
         blob = pythonize_post(blob)
         #if not blob['by_conversation'] or blob['reply'] is not None:
         #    self.build_conversation(service, blob)
-        self.db.Post(**blob).add()
+        Post = self.db.Post
+        if Post.find().filter_by(pid = blob['pid']).count() == 0:
+            Post(**blob).add()
 
