@@ -173,6 +173,9 @@ def parse_post(service, source_id, post):
     post.user = drug(**post.user)
     post.author = drug(screen_name = post.user.screen_name,
                        profile_url = post.user.profile_url,
+                       profile_image_url = post.user.profile_image_url,
+                       profile_text_color = post.user.profile_text_color,
+                       profile_background_color = post.user.profile_background_color,
                        name        = post.user.name,
                        url         = post.user.url)
     if 'retweeted_status' in _post:
@@ -182,11 +185,11 @@ def parse_post(service, source_id, post):
         post.text = repost.text
         post.author.screen_name = repost.user.screen_name
         post.author.profile_url = repost.user.profile_url
+        post.author.profile_image_url = repost.user.profile_image_url
+        post.author.profile_text_color = repost.user.profile_text_color
+        post.author.profile_background_color = repost.user.profile_background_color
         post.author.name = repost.user.name
         post.author.url = repost.user.url
-        post.user.profile_text_color = repost.user.profile_text_color
-        post.user.profile_background_color=repost.user.profile_background_color
-        post.user.profile_image_url = repost.user.profile_image_url
     return {
         'pid':post.id,
         'text':parse_text(_clean_url(post.text), services[service].url),
@@ -206,24 +209,31 @@ def parse_post(service, source_id, post):
         'user_fgcolor':post.user.profile_text_color or "#ddd",
         'user_bgcolor':post.user.profile_background_color or "black",
         'replied_user':post.in_reply_to_screen_name,
+        'author_fgcolor':post.author.profile_text_color or "#ddd",
+        'author_bgcolor':post.author.profile_background_color or "black",
         'by_conversation':False,
         'user_profile_url':_clean_url(post.user.profile_url),
-        'profile_image_url':_clean_url(post.user.profile_image_url),
-        'author_profile_url':_clean_url(post.author.profile_url)}
+        'author_profile_url':_clean_url(post.author.profile_url),
+        'user_profile_image_url':_clean_url(post.user.profile_image_url),
+        'author_profile_image_url':_clean_url(post.author.profile_image_url),
+        }
 
 
 def prepare_post(blob):
     post = drug(**blob)
     repeatstr = ""
+    post.imageinfo = {
+        'author': [post.service, post.author_id, post.author_profile_image_url]}
     if post.author_id != post.user_id:
         repeatstr = ' repeated <a href="%s">%s</a> (<a href="%s">%s</a>)' % \
             (post.author_url, post.author_name,
              post.author_profile_url, post.author_id)
+        post.imageinfo['user'] = [post.service, post.user_id,
+                                  post.user_profile_image_url]
     post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>)%s via %s on %s' % \
         (post.user_url, post.user_name, post.user_profile_url,
          post.user_id, repeatstr, post.source,
          post.time.strftime("%a %d %b %Y %H:%M:%S"))
-    post.imageinfo = [post.service, post.user_id, post.profile_image_url]
     return post
 
 
@@ -231,8 +241,10 @@ def pythonize_post(blob):
     blob = dict([(str(k),blob[k]) for k in blob])
     for k in ['text','plain','source','service','user_id','user_url',
                 'user_name','user_fgcolor','user_bgcolor','user_profile_url',
-                'profile_image_url', 'author_name', 'author_id', "source_id",
-                'author_url', 'author_profile_url', 'replied_user']:
+                'user_profile_image_url', 'author_name', 'author_id',
+                'source_id', 'author_profile_image_url', 'author_url',
+                'author_profile_url', 'replied_user',
+                'author_fgcolor', 'author_bgcolor']:
         if blob[k]:
             blob[k] = unicode(blob[k])
     return blob

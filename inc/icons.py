@@ -1,6 +1,6 @@
 
 
-from PyQt4.Qt import QSettings, QIcon, QPixmap, QImage,\
+from PyQt4.Qt import QSettings, QIcon, QPixmap, QImage, Qt,\
                      QSystemTrayIcon, QColor, QRectF, QPainter
 
 from inc.get_favicon import get_favicon
@@ -126,10 +126,16 @@ class Iconer:
 
 
     def do_avatar_on_(self, msg, imageinfo):
-        image = parse_image(*([self] + imageinfo))
+        image = parse_image(*([self] + imageinfo['author']))
         if image[0]:
             msg.avatarLabel.setPixmap(image[0])
             self.avatar_cache[image[1]] = msg.avatarLabel
+        if 'user' in imageinfo:
+            image = parse_image(*([self] + imageinfo['user']))
+            if image[0]:
+                rl = msg.repeatLabel
+                rl.setPixmap(QPixmap(image[0]).scaled(rl.width(),rl.height(),
+                    Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
 
 

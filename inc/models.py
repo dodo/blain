@@ -22,10 +22,13 @@ def setup_models(db):
             user_fgcolor = 'string',
             user_bgcolor = 'string',
             replied_user = 'string',
+            author_fgcolor = 'string',
+            author_bgcolor = 'string',
             by_conversation = 'boolean', # all posts only reference by conversation (not by timeline)
             user_profile_url = 'string',
-            profile_image_url = 'string',
             author_profile_url = 'string',
+            user_profile_image_url = 'string',
+            author_profile_image_url = 'string',
             ),
         model(db, "Cache",
             pid = "integer", # Post.id
