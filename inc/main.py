@@ -172,8 +172,6 @@ class Window:
         pref = self.app.preferences
         msg = self.Message.new()
         msg.id.setVisible(False)
-        if blob.author_id == blob.user_id:
-            msg.repeatLabel.setVisible(False)
         if blob.reply is None:
             msg.replyLabel.setVisible(False)
         msg.id.setText(str(blob.pid))
@@ -203,9 +201,18 @@ class Window:
         self.app.icons.do_mask_on_(msg)
         msg.avatarLabel.setStyleSheet(patchStyleSheet(
             msg.avatarLabel.styleSheet(),
-            **{'background-color':blob.user_bgcolor,'color':blob.user_fgcolor}))
+            **{'background-color':blob.author_bgcolor,
+               'color':blob.author_fgcolor}))
         self.app.icons.do_service_icon_on_(msg, blob.service)
-
+        if blob.author_id == blob.user_id:
+            msg.repeatLabel.setVisible(False)
+        else:
+            style = {'background-color':blob.user_bgcolor,
+                     'color':blob.user_fgcolor}
+            if 'imageinfo' in blob.__dict__ and 'user' in blob.imageinfo:
+                style['border-radius'] = "0em"
+            msg.repeatLabel.setStyleSheet(patchStyleSheet(
+                msg.repeatLabel.styleSheet(), **style))
         if 'imageinfo' in blob.__dict__:
             self.app.icons.do_avatar_on_(msg, blob.imageinfo)
         return msg, blob.time.strftime("%Y-%m-%d %H:%M:%S")
