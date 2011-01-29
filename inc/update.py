@@ -193,8 +193,9 @@ class Updater:
 
 
     def twitter(self, start = True):
-        self.app.threads.updateMicroblogging('twitter',
-            self.app.preferences.ui.twitteridEdit.text())
+        user = unicode(self.app.preferences.settings.\
+            value("account/twitter/id").toString())
+        self.app.threads.updateMicroblogging('twitter', user)
         ids = ['__twitter__']
         if start:
             self.app.threads.start(*ids)
@@ -203,7 +204,8 @@ class Updater:
 
 
     def identica(self, start = True):
-        user = self.app.preferences.ui.identicaidEdit.text()
+        user = unicode(self.app.preferences.settings.\
+            value("account/identica/id").toString())
         self.app.threads.updateMicroblogging('identica', user)
         self.app.threads.updateGroups(user)
         ids = ['__identica__', '%s groups' % user]
