@@ -199,6 +199,7 @@ class MicroblogThread(QThread):
             print_exc()
             self.end()
             return
+        old_friends = list(map(unicode,self.friends.allKeys()))
         while friendscount > 0:
             page = next_page(self.service, page, new_friends)
             print "Fetching from friends page %i, %i updates remaining (%s)" % \
@@ -209,16 +210,23 @@ class MicroblogThread(QThread):
             if len(new_friends) == 0:
                 trys += 1
             for friend in new_friends:
-                id = str(friend['screen_name'])
+                id = unicode(friend['screen_name'])
                 if self.friends.contains(id):
                     print id, "(found)", self.service
                     stop = True
+                    if id in old_friends:
+                        old_friends.remove(id)
                 else:
                     print id, "(new)", self.service
+                    self.app.updates.add_timer("user", self.service, id)
                 dump = json.dumps(clean_urls(friend))
                 self.friends.setValue(id, dump)
             if stop or trys > 3: break
             #self.yieldCurrentThread()
+        for id in old_friends:
+            print id, "(lost)", self.service
+            self.app.updates.remove_timer("user", self.service, id)
+            self.friends.remove(id)
         print "friends list up-to-date. (%s)" % self.service
         self.end()
 
@@ -250,6 +258,7 @@ class GroupsThread(QThread):
             return
         trys = 0
         new_groups = None
+        old_groups = list(map(unicode,self.groups.allKeys()))
         while trys < 4:
             trys += 1
             new_groups = get_group(self.user)
@@ -259,13 +268,20 @@ class GroupsThread(QThread):
             self.end()
             return
         for group in new_groups:
-            id = str(group['nickname'])
+            id = unicode(group['nickname'])
             if self.groups.contains(id):
                 print id, "(found)"
+                if id in old_groups:
+                    old_groups.remove(id)
             else:
                 print id, "(new)"
+                self.app.updates.add_timer("group", "", id)
             dump = json.dumps(clean_urls(group))
             self.groups.setValue(id, dump)
+        for id in old_groups:
+            print id, "(lost)"
+            self.app.updates.remove_timer("group", "", id)
+            self.groups.remove(id)
         print "groups list up-to-date. (%s)" % self.user
         self.end()
 

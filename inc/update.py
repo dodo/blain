@@ -101,8 +101,8 @@ class Updater:
                 timers.extend(new_friend['identica'][len(new_friend['twitter']):])
         # save new timers
         st.setValue('count',len(timers))
-        for i in range(len(timers)):
-            st.setValue(str(i), timers[i])
+        for i, timer in enumerate(timers):
+            st.setValue(str(i), timer)
         # more python readable format
         timers = [ unicode(t).split(",") for t in timers ]
         timers = [ [float(t[0])] + t[1:] for t in timers ]
@@ -116,6 +116,28 @@ class Updater:
             pref.value("timer/interval",1e4).toInt()[0]) # 10 sec
         if pref.value("timer/active", True).toBool():
             self.timer.start()
+
+
+    def add_timer(self, func, service, user, *args):
+        timer = ",".join([time(), func, service, user])
+        if args:
+            timer += "," + ",".join(map(unicode, args))
+        self.settings.setValue(str(len(self.timers)), timer)
+        self.timers.append(timer)
+        self.settings.setValue("count", len(self.timers))
+
+
+    def remove_timer(self, func, service, user):
+        found, cur, n = False, ",".join([func, service, user]), -1
+        for i, timer in enumerate(timers):
+            if cur in timer:
+                self.timers = self.timers[:i] + self.timers[i+1:]
+                n, found = i, True
+                break
+        if not found: return
+        self.settings.setValue('count',len(self.timers))
+        for i, timer in enumerate(timer[n:]):
+            self.settings.setValue(str(i), timer)
 
 
     def new_updates(self, service, user, new_time, break_): # new_updates count
