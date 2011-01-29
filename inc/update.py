@@ -184,12 +184,11 @@ class Updater:
 
 
     def timer_step(self):
-        print "* timer update"
         cur = self.timers[0]
         for timer in self.timers:
             if timer[0] < cur[0]:
                 cur = timer
-        print cur
+        print "* timer update", cur
         self.update[cur[1]](*cur[2:])
 
 

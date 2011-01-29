@@ -31,7 +31,7 @@ def get_page(method, service, user, count, page, opts={}):
     try:
         return api_call(service, method, options), True
     except:
-        print "Error while getting user (%s, %s, %i):" % (service, user, page)
+        print "[ERROR] while getting user (%s, %s, %i):" % (service, user, page)
         print_exc()
         return [], False
 
@@ -53,7 +53,7 @@ class UserStatusThread(QThread):
 
     def run(self):
         if not self.service or not self.user:
-            self.app.logStatus.emit("Error: no user given! ("+self.service+")")
+            self.app.logStatus.emit("[ERROR] no user given! ("+self.service+")")
             self.app.killThread.emit(self.id)
             self.quit()
             return
@@ -86,8 +86,8 @@ class UserStatusThread(QThread):
             return
         while servicecount > 0:
             fetch_count = min(n==1 and int(step/10) or step, servicecount)
-            print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
-                (n, fetch_count, page, servicecount, self.service),"[%i]"%trys
+            #print "%i Fetching %i from page %i, %i updates remaining (%s)" % \
+            #    (n, fetch_count, page, servicecount, self.service),"[%i]"%trys
             new_statuses,new_ok = get_page(self.api_method,
                 self.service, self.user, fetch_count, page,
                 page == 2 and _id and {'max_id':_id} or {})
@@ -101,10 +101,10 @@ class UserStatusThread(QThread):
                 _id = str(status['id'])
                 id = self.service + _id
                 if status['id'] in self.knownids:
-                    print id, "(found)"
+                    #print id, "(found)"
                     stop = True
                 else:
-                    print id
+                    #print id
                     i += 1
                     update = parse_post(self.service, self.user, status)
                     self.knownids.append(status['id'])
@@ -119,10 +119,10 @@ class UserStatusThread(QThread):
             self.app.logStatus.emit("%i updates on %s from %s" % \
                 (i, self.service, self.user))
         else:
-            self.app.logStatus.emit("Error: no results for {0} on {1}!".\
+            self.app.logStatus.emit("[ERROR] no results for {0} on {1}!".\
                 format(self.user, self.service))
         self.update(self.service, self.user, i, ok)
-        print self.service + " done."
+        #print self.service + " done."
         self.app.killThread.emit(self.id)
         self.quit()
 
@@ -154,7 +154,7 @@ def get_friends(service, user, page):
     try:
         return pages[service].get(api_call(service, 'statuses/friends', options))
     except:
-        print "Error while getting friends (%s, %s, %i):"%(service, user, page)
+        print "[ERROR] while getting friends (%s, %s, %i):"%(service, user, page)
         print_exc()
         return []
 
@@ -202,8 +202,8 @@ class MicroblogThread(QThread):
         old_friends = list(map(unicode,self.friends.allKeys()))
         while friendscount > 0:
             page = next_page(self.service, page, new_friends)
-            print "Fetching from friends page %i, %i updates remaining (%s)" % \
-                (page, friendscount, self.service),"[%i]"%trys
+            #print "Fetching from friends page %i, %i updates remaining (%s)" % \
+            #    (page, friendscount, self.service),"[%i]"%trys
             new_friends = get_friends(self.service, self.user, page)
             stop = False
             friendscount -= len(new_friends)
@@ -212,22 +212,22 @@ class MicroblogThread(QThread):
             for friend in new_friends:
                 id = unicode(friend['screen_name'])
                 if self.friends.contains(id):
-                    print id, "(found)", self.service
+                    #print id, "(found)", self.service
                     stop = True
                     if id in old_friends:
                         old_friends.remove(id)
                 else:
-                    print id, "(new)", self.service
+                    #print id, "(new)", self.service
                     self.app.updates.add_timer("user", self.service, id)
                 dump = json.dumps(clean_urls(friend))
                 self.friends.setValue(id, dump)
             if stop or trys > 3: break
             #self.yieldCurrentThread()
         for id in old_friends:
-            print id, "(lost)", self.service
+            #print id, "(lost)", self.service
             self.app.updates.remove_timer("user", self.service, id)
             self.friends.remove(id)
-        print "friends list up-to-date. (%s)" % self.service
+        #print "friends list up-to-date. (%s)" % self.service
         self.end()
 
     def end(self):
@@ -237,7 +237,7 @@ class MicroblogThread(QThread):
             for user in self.friends.allKeys() + [self.user]:
                 self.app.updateUser.emit(self.service, user)
         self.app.updates.updates.friends(self.service, self.user)
-        print "done."
+        #print "done."
         self.quit()
 
 
@@ -270,19 +270,19 @@ class GroupsThread(QThread):
         for group in new_groups:
             id = unicode(group['nickname'])
             if self.groups.contains(id):
-                print id, "(found)"
+                #print id, "(found)"
                 if id in old_groups:
                     old_groups.remove(id)
             else:
-                print id, "(new)"
+                #print id, "(new)"
                 self.app.updates.add_timer("group", "", id)
             dump = json.dumps(clean_urls(group))
             self.groups.setValue(id, dump)
         for id in old_groups:
-            print id, "(lost)"
+            #print id, "(lost)"
             self.app.updates.remove_timer("group", "", id)
             self.groups.remove(id)
-        print "groups list up-to-date. (%s)" % self.user
+        #print "groups list up-to-date. (%s)" % self.user
         self.end()
 
     def end(self):
@@ -292,7 +292,7 @@ class GroupsThread(QThread):
             for group in self.groups.allKeys():
                 self.app.updateGroup.emit(group)
         self.app.updates.updates.groups(self.user)
-        print "done."
+        #print "done."
         self.quit()
 
 
@@ -327,8 +327,8 @@ class Threader:
         id = str(id)
         if id in self.threads:
             del self.threads[id]
-        print len(self.threads),"threads still running:  ",", ".\
-            join(self.threads.keys()),"-"*40
+        #print len(self.threads),"threads still running:  ",", ".\
+        #    join(self.threads.keys()),"-"*40
         self.app.db.commit() # after addMessage
         self.app.reader.update()
         if not self.threads:
@@ -341,7 +341,7 @@ class Threader:
 
     def updateUser(self, service, user):
         service, user = unicode(service), unicode(user)
-        print "updating user", user, "(%s) ..." % service
+        #print "updating user", user, "(%s) ..." % service
         id = service + user
         if self.check_thread(id, service, user):
             knownids = self.app.db.get_knownids(user)
@@ -353,7 +353,7 @@ class Threader:
 
     def updateMicroblogging(self, service, user, updateusers=True):
         service, user = str(service), unicode(user)
-        print "updating ", user, "[%s] ..." % service
+        #print "updating ", user, "[%s] ..." % service
         id = "__%s__" % service
         if self.check_thread(id, service, "friends"):
             self.threads[id] = MicroblogThread(
@@ -367,7 +367,7 @@ class Threader:
 
     def updateGroup(self, group):
         group = unicode(group)
-        print "updating group", group, "..."
+        #print "updating group", group, "..."
         id = " %s group" % group
         if self.check_thread(id, "identica", group):
             knownids = self.app.db.get_knownids(group)
@@ -379,7 +379,7 @@ class Threader:
 
     def updateGroups(self, user, updategroups=True):
         user = unicode(user)
-        print "updating ", user, "groups ..."
+        #print "updating ", user, "groups ..."
         id = "%s groups" % user
         if self.check_thread(id, "identica", "groups"):
             self.threads[id] = GroupsThread(self.app, user, updategroups)
@@ -391,7 +391,7 @@ class Threader:
 
 
     def start(self, *services):
-        print "starting", ", ".join(services)
+        #print "starting", ", ".join(services)
         for service in services:
             if service not in self.threads:
                 print "unknown thread %s" % service

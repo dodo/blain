@@ -130,7 +130,7 @@ class Window:
 
 
     def logStatus(self, msg, time=5000):
-        print msg
+        print unicode(msg)
         self.ui.statusBar.showMessage(msg, time)
         self.ui.statusBar.update()
 

@@ -15,6 +15,7 @@ def get_image(url):
     try:
         return urllib2.urlopen(request).read()
     except(urllib2.HTTPError, urllib2.URLError):
+        print "[ERROR] cannot fetch image {0}".format(url)
         print_exc()
     return None
 

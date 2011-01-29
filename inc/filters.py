@@ -62,7 +62,7 @@ class Filterer:
                             'filter_description' in fi and  \
                             'instance_description' in fi and\
                             isinstance(fi['config'], dict)):
-                        print "error: filter '%s' not valid." % filename
+                        print "[ERROR] filter '%s' not valid." % filename
                     else:
                         filterinfo = drug(**filterinfo)
                         self._keys.append(filterinfo.id)
@@ -79,7 +79,7 @@ class Filterer:
             if fid in self._filters:
                 self.show_filter_instance(self._filters[fid], fhash)
             else:
-                print "doens't found filter", fid
+                print "[WARNING] doens't found filter", fid
 
 
     def filter_settings(self, id, hash):
@@ -165,7 +165,7 @@ class Filterer:
     def update(self, doupdate = True):
         self.app.db.update_cache()
         if doupdate: self.app.updateMessageView()
-        print "done."
+        #print "done."
 
 
     def remove(self):

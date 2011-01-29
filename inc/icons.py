@@ -73,10 +73,10 @@ class Iconer:
             icon = get_favicon(url)
             if icon:
                 icon = QIcon(QPixmap.fromImage(QImage.fromData(icon)))
-                print name, "icon loaded?", not icon.isNull()
+                #print name, "icon loaded?", not icon.isNull()
                 if not icon.isNull():
                     st.setValue('icon/'+name, icon)
-            else: print "error while loading", name, "icon"
+            else: print "[ERROR] while loading", name, "icon"
         else:
             icon = st.value('icon/'+name, None)
             if icon: icon = QIcon(icon)

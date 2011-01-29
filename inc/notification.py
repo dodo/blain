@@ -45,6 +45,7 @@ class Notifier:
             win.actionSilence.setEnabled(False)
             pref.notificationSettings.setVisible(False)
             self.Notify = lambda *args, **kwargs: None
+            print "[ERROR] cannot get dbus interface"
             print_exc()
             return
         self.notifies['amount'] = self.notify_amount
@@ -59,7 +60,7 @@ class Notifier:
             "notification/mode", self.mode).toString())
         if button in self.buttons:
             self.buttons[button].setChecked(True)
-        else: print "motification: %s not found in resetButtons" % button
+        else: print "notification: %s not found in resetButtons" % button
 
 
     def saveRadioButtons(self):

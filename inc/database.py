@@ -127,7 +127,7 @@ class Databaser:
         if not previous: return # nothing to do
         previous = [drug(**previous)]
         service = unicode(service)
-        print "try to build conversation", previous[0].pid, "(%s)" % service
+        #print "try to build conversation", previous[0].pid, "(%s)" % service
         Post, Conversation = self.db.Post, self.db.Conversation
         while True:
             posts = Post.find().filter_by(pid = previous[-1].reply).all()
@@ -140,12 +140,13 @@ class Databaser:
                          'max_id':previous[-1].reply,
                          'count': 1})
                 except:
+                    print "[ERROR] during conversion fetch"
                     print_exc()
                     break
                 if not status: break # nothing fetched or empty list
                 update = parse_post(service, "", status[0])
                 update['source_id'] = update['user_id']
-                print service, "con", update['pid']
+                #print service, "con", update['pid']
                 update['by_conversation'] = True
                 Post(**update).add()
                 previous.append(drug(**update))
@@ -153,7 +154,7 @@ class Databaser:
         if len(previous) == 1: return # still no conversation
         ids = " ".join(list(map(lambda p: str(p.pid), previous[1:])))
         Conversation(pid = previous[0].pid, ids = ids).save()
-        print "conversation", previous[0].pid, "build."
+        #print "conversation", previous[0].pid, "build."
         self.app.reader.update()
 
 
