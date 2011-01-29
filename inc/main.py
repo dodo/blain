@@ -98,7 +98,7 @@ class Window:
         mt = self.ui.messageTable
         def work(item):
             msg = mt.itemWidget(item, 0)
-            if ids is not None and int(msg.id.text()) not in ids:
+            if msg is None or ids is not None and int(msg.id.text()) not in ids:
                 return # skip it
             msg.messageLabel.setStyleSheet(patchStyleSheet(
                 msg.messageLabel.styleSheet(), **properties))
