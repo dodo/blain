@@ -108,14 +108,14 @@ class Databaser:
         self.commit()
 
 
-
     def get_conversation_messages(self, pid):
         Post, Conversation = self.db.Post, self.db.Conversation
         msgs, convs = [], Conversation.find().filter_by(pid = pid).all()
         if not convs:
             post = Post.find().filter_by(pid = pid).one()
             if post.reply is not None:
-                self.build_conversation(post.service, post.__dict__)
+                service= "identica" if "identica" in post.service else "twitter"
+                self.build_conversation(service, post.__dict__)
                 convs = Conversation.find().filter_by(pid = pid).all()
         for conv in convs:
             ids = list(map(int, conv.ids.split()))
