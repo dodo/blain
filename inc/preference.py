@@ -44,9 +44,6 @@ class PreferencesDialog(QDialog):
 class Preferencer:
 
     def __init__(self, app):
-        if not hasattr(app, 'filters'):
-            print("preferences: need 'filters' from app.")
-            exit(1)
         self.app = app
         self.settings = QSettings("blain", "blain")
         self.ui = PreferencesDialog(app)
@@ -55,12 +52,6 @@ class Preferencer:
     def connect(self):
         ui, ft = self.ui, self.app.filters
         self.app.window.ui.actionPreferences.triggered.connect(self.show)
-        # connect filters
-        ui.filtersComboBox.currentIndexChanged.connect(ft.changeDescription)
-        ui.filtersComboBox_new.currentIndexChanged.connect(ft.changeNew)
-        ui.addfilterButton.clicked.connect(ft.install)
-        ui.updatefilterButton.clicked.connect(lambda: ft.update())
-        ui.removefilterButton.clicked.connect(ft.remove)
         #connect preference window
         ui.fgcolorButton.clicked.connect(self.change_fgcolor)
         ui.bgcolorButton.clicked.connect(self.change_bgcolor)
@@ -74,8 +65,6 @@ class Preferencer:
 
     def setup(self):
         self.load()
-        self.app.filters.changeNew(0)
-        self.app.filters.changeDescription(0)
 
 
     def show(self, _):

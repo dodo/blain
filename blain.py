@@ -51,16 +51,16 @@ class Blain(QApplication):
         self.cwd = dirname(realpath(__file__))
         self.window       =       Window(self)
         self.db           =    Databaser(self)
-        self.filters      =     Filterer(self)
         self.preferences  =  Preferencer(self)
+        self.filters      =     Filterer(self)
         self.updates      =      Updater(self)
         self.icons        =       Iconer(self)
         self.threads      =     Threader(self)
         self.reader       =       Reader(self)
         self.notifier     =     Notifier(self)
 
-        controllers = [self.window, self.db,  self.filters,
-                       self.preferences, self.updates, self.icons,
+        controllers = [self.window, self.db, self.preferences,
+                       self.filters, self.updates, self.icons,
                        self.threads, self.reader, self.notifier]
 
         for controller in controllers:

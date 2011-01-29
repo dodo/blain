@@ -22,6 +22,9 @@ class Filterer:
         if not hasattr(app, 'db'):
             print("filters: need 'db' from app.")
             exit(1)
+        if not hasattr(app, 'preferences'):
+            print("filters: need 'preferences' from app.")
+            exit(1)
         self.app = app
         self._filters = {}
         self._keys = []
@@ -30,7 +33,15 @@ class Filterer:
 
 
     def connect(self):
-        pass # all gui in preferences
+        ui = self.app.preferences.ui
+        ui.filtersComboBox.currentIndexChanged.connect(self.changeDescription)
+        ui.filtersComboBox_new.currentIndexChanged.connect(self.changeNew)
+        ui.addfilterButton.clicked.connect(self.install)
+        ui.updatefilterButton.clicked.connect(lambda: self.update())
+        ui.removefilterButton.clicked.connect(self.remove)
+        # init filter ui stuff in preferences
+        self.changeNew(0)
+        self.changeDescription(0)
 
 
     def setup(self):
