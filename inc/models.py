@@ -12,6 +12,7 @@ def setup_models(db):
             source = 'string',
             unread = 'boolean',
             service = 'string',
+            account = 'string', # user id of account
             user_id = 'string', # screen_name
             user_url = 'string',
             source_id = 'string', # user.screen_name or group.nickname

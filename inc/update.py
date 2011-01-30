@@ -1,15 +1,23 @@
 
 from time import time
+from random import seed, shuffle
 
 from PyQt4.Qt import QTimer, QSettings
 
 from inc.parse import drug
+
+
+seed()
+
 
 class Updater:
 
     def __init__(self, app):
         if not hasattr(app, 'preferences'):
             print("update: need 'preferences' from app.")
+            exit(1)
+        if not hasattr(app, 'accounts'):
+            print("update: need 'accounts' from app.")
             exit(1)
         self.app = app
         self.update = {}
@@ -33,72 +41,83 @@ class Updater:
         account_id = {}
         # thread starting functions
         self.update['user'] = app.updateUser.emit
-        self.update['group'] = lambda *args: app.updateGroup.emit(*args[1:])
+        self.update['group'] = app.updateGroup.emit
         self.update['groups'] = lambda *args: \
-            app.updateGroups.emit(args[1], False, *args[2:])
+            app.updateGroups.emit(*(args[:2]+(False,)+args[3:]))
         self.update['friends'] = lambda *args: \
-            app.updateMicroblogging.emit(args[0],
-            account_id[service], False, *args[2:])
-        # read existing friends
-        friends = {}
-        for service in ["twitter", "identica"]:
-            friends[service] = []
-            if pref.contains("account/%s/id" % service):
-                account_id[service] = pref.value(
-                    "account/%s/id" % service).toString()
-                friends[service] = map(unicode, QSettings("blain",
-                    "%s-%s-friends" % (account_id[service], service)).allKeys())
-        friends = drug(**friends)
-        # read existing groups
-        groups = []
-        if pref.contains("account/identica/id"):
-            groups = map(unicode, QSettings("blain",
-                "%s-groups" % account_id['identica']).allKeys())
+            app.updateFriends.emit(*(args[:2]+(False,)+args[3:]))
+        # read existing friends and groups
+        friends, friends_list, groups, groups_list = {}, {}, {}, {}
+        for account in self.app.accounts.get():
+            if account.service not in friends:
+                friends[account.service] = {}
+            if account.service not in friends_list:
+                friends_list[account.service] = []
+            friends_list[account.service].append(account.name)
+            friends[account.service][account.name] = \
+                list(map(unicode, account.friends.allKeys())) + [account.name]
+            if account.groups is not None:
+                if account.service not in groups:
+                    groups[account.service] = {}
+                if account.service not in groups_list:
+                    groups_list[account.service] = []
+                groups_list[account.service].append(account.name)
+                groups[account.service][account.name] = \
+                    list(map(unicode, account.groups.allKeys()))
+        # read existing timer events
 
-        # format: (timestamp, func, service, user, *args)
+        # format: (timestamp, func, service, account, user, *args)
         timers = [ unicode(st.value(str(i)).toString())
                 for i in range(st.value("count",0).toInt()[0]) ]
 
-        # find new timer entries
-        new_friend = {'twitter':friends.twitter , 'identica':friends.identica}
-        new_friends = new_friend.keys()
-        new_group = groups
-        new_groups = True
+        #find new timer events
+        user_leveled = {'user': friends, 'group': groups}
+        account_leveled = {'friends': friends_list, 'groups': groups_list}
         for timer in map(lambda t: unicode(t).split(","), timers):
-            if timer[1] == 'user':
-                if timer[3] in new_friend[timer[2]]:
-                    new_friend[timer[2]].remove(timer[3])
-            elif timer[1] == 'friends':
-                if timer[2] in new_friends:
-                    new_friends.remove(timer[2])
-            elif timer[1] == 'groups':
-                new_groups = False
-            elif timer[1] == 'group':
-                if timer[3] in new_group:
-                    new_group.remove(timer[3])
+            if timer[1] == 'user' or timer[1] == 'group':
+                # choose current data
+                service_level = user_leveled[timer[1]]
+                # dive data levels
+                if timer[2] in service_level:
+                    account_level = service_level[timer[2]]
+                    if timer[3] in account_level:
+                        user_level = account_level[timer[3]]
+                        if timer[4] in user_level:
+                            # event found, remove it
+                            user_level.remove(timer[4])
+            elif timer[1] == 'friends' or timer[1] == 'groups':
+                # choose current data
+                service_level = account_leveled[timer[1]]
+                # dive data levels
+                if timer[2] in service_level:
+                    account_level = service_level[timer[2]]
+                    if timer[3] in account_level:
+                        # event found, remove it
+                        account_level.remove(timer[3])
+        # save left overs
+        t = time()
+        # add new group lists
+        timers.extend([ u"{0},groups,{1},{2},".format(t, service, account)
+                        for service in groups_list
+                        for account in groups_list[service] ])
         # add new friend lists
-        for service in new_friends:
-            timers.append("{0},friends,{1},".format(time(), service))
-        # add groups update timer
-        if new_groups and 'identica' in account_id:
-            timers.append("{0},groups,,{1}".\
-                format(time(), account_id['identica']))
+        timers.extend([ u"{0},friends,{1},{2},".format(t, service, account)
+                        for service in friends_list
+                        for account in friends_list[service] ])
         # add new groups
-        for group in new_group:
-            timers.append("{0},group,,{1}".format(time(), group))
+        timers.extend([ u"{0},group,{1},{2},{3}".format(t,service,account,group)
+                        for service in groups
+                        for account in groups[service]
+                        for group   in groups[service][account] ])
         # add new friends
-        for service in new_friend:
-            for i, user in enumerate(new_friend[service]):
-                new_friend[service][i] = "{0},user,{1},{2}".\
-                    format(time(),service,user)
-        # zip list(friends) of both services together
-        if new_friend['twitter'] or new_friend['identica']:
-            timers.extend(list(sum(zip(new_friend['identica'],
-                                            new_friend['twitter']), ())))
-            if len(new_friend['twitter']) > len(new_friend['identica']):
-                timers.extend(new_friend['twitter'][len(new_friend['identica']):])
-            else:
-                timers.extend(new_friend['identica'][len(new_friend['twitter']):])
+        timers.extend([ u"{0},user,{1},{2},{3}".format(t,service,account,user)
+                        for service in friends
+                        for account in friends[service]
+                        for user    in friends[service][account] ])
+        # add some random to the order so twitter
+        #   wont get called to often in a row hopfully
+        if len(timers) != st.value("count", 0).toInt()[0]:
+            shuffle(timers) # inplace
         # save new timers
         st.setValue('count',len(timers))
         for i, timer in enumerate(timers):
@@ -118,32 +137,33 @@ class Updater:
             self.timer.start()
 
 
-    def add_timer(self, func, service, user, *args):
-        timer = ",".join([time(), func, service, user])
+    def add_timer(self, func, service, account, user, *args):
+        timer = ",".join(map(unicode, [time(), func, service, account, user]))
         if args:
             timer += "," + ",".join(map(unicode, args))
         self.settings.setValue(str(len(self.timers)), timer)
-        self.timers.append(timer)
+        timer = timer.split(",")
+        self.timers.append([float(timer[0])] + timer[1:])
         self.settings.setValue("count", len(self.timers))
 
 
-    def remove_timer(self, func, service, user):
-        found, cur, n = False, ",".join([func, service, user]), -1
-        for i, timer in enumerate(timers):
-            if cur in timer:
-                self.timers = self.timers[:i] + self.timers[i+1:]
-                n, found = i, True
-                break
-        if not found: return
-        self.settings.setValue('count',len(self.timers))
-        for i, timer in enumerate(timer[n:]):
-            self.settings.setValue(str(i), timer)
-
-
-    def new_updates(self, service, user, new_time, break_): # new_updates count
-        cur, n = None, -1
+    def remove_timer(self, func, service, account, user):
+        found, cur = [], ",".join(map(unicode, [func, service, account, user]))
         for i, timer in enumerate(self.timers):
-            if break_(timer):
+            if cur in ",".join(map(unicode, timer)):
+                found.append(i)
+        if not found: return
+        for i in reversed(found):
+            self.timers.pop(i)
+        self.settings.setValue('count',len(self.timers))
+        for i, timer in enumerate(self.timers[found[0]:]):
+            self.settings.setValue(str(i+found[0]),",".join(map(unicode,timer)))
+
+
+    def new_updates(self, account, new_time, break_): # new_updates count
+        cur, n, service, accid = None, -1, account.service, account.name
+        for i, timer in enumerate(self.timers):
+            if service == timer[2] and accid == timer[3] and break_(timer):
                 n, cur = i, timer
                 break
         if cur is None: return
@@ -151,36 +171,30 @@ class Updater:
         self.settings.setValue(str(n), ",".join(map(unicode, cur)))
 
 
-    def user(self, service, user, count , ok): # new_updates count
+    def user(self, account, user, count, ok): # new_updates count
         if count:
             self.app.notifier.notify_by_mode(
                 amount = count, user = user)
-        service, user = unicode(service), unicode(user)
-        self.new_updates(service, user,
+        self.new_updates(account,
             time() - (not ok) * 5 - count / len(self.timers),
-            lambda t: t[1] == "user" and t[2] == service and t[3] == user)
+            lambda t: t[1] == "user" and t[4] == user)
 
 
-    def group(self, _, group, count , ok): # new_updates count
+    def group(self, account, group, count, ok): # new_updates count
         if count:
             self.app.notifier.notify_by_mode(
                 amount = count, user = "group " + group)
-        user = unicode(group)
-        self.new_updates("identica", group,
+        self.new_updates(account,
             time() - (not ok) * 5 - count / len(self.timers),
-            lambda t: t[1] == "group" and t[3] == group)
+            lambda t: t[1] == "group" and t[4] == group)
 
 
-    def groups(self, user): # new_updates count
-        user = unicode(user)
-        self.new_updates('identica', user, time(),
-            lambda t: t[1] == "groups")
+    def groups(self, account): # new_updates count
+        self.new_updates(account, time(), lambda t: t[1] == "groups")
 
 
-    def friends(self, service, user): # new_updates count
-        service, user = unicode(service), unicode(user)
-        self.new_updates(service, user, time(),
-            lambda t: t[1] == "friends" and t[2] == service)
+    def friends(self, account): # new_updates count
+        self.new_updates(account, time(), lambda t: t[1] == "friends")
 
 
     def timer_step(self):
@@ -192,23 +206,13 @@ class Updater:
         self.update[cur[1]](*cur[2:])
 
 
-    def twitter(self, start = True):
-        user = unicode(self.app.preferences.settings.\
-            value("account/twitter/id").toString())
-        self.app.threads.updateMicroblogging('twitter', user)
-        ids = ['__twitter__']
-        if start:
-            self.app.threads.start(*ids)
-            return []
-        return ids
-
-
-    def identica(self, start = True):
-        user = unicode(self.app.preferences.settings.\
-            value("account/identica/id").toString())
-        self.app.threads.updateMicroblogging('identica', user)
-        self.app.threads.updateGroups(user)
-        ids = ['__identica__', '%s groups' % user]
+    def account(self, account, start = True):
+        acc = account.service, account.name
+        ids = [u"{0}{1}friends".format(*acc)]
+        self.app.threads.updateFriends(*acc)
+        if account.groups is not None:
+            ids.append(u"{0}{1}groups".format(*acc))
+            self.app.threads.updateGroups(*acc)
         if start:
             self.app.threads.start(*ids)
             return []
@@ -222,5 +226,8 @@ class Updater:
 
 
     def all(self):
-        self.app.threads.start(*(self.identica(False) + self.twitter(False)))
+        self.app.threads.start(
+            *sum([ self.account(account,False)
+            for account in self.app.accounts.get() ],[]))
+
 

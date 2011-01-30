@@ -211,7 +211,7 @@
              </property>
              <widget class="QWidget" name="tab_2">
               <attribute name="title">
-               <string>current</string>
+               <string>  ⚫  </string>
               </attribute>
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <item>
@@ -267,9 +267,26 @@
                </item>
               </layout>
              </widget>
+             <widget class="QWidget" name="tab_7">
+              <attribute name="title">
+               <string>★</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QComboBox" name="filtersComboBox"/>
+               </item>
+               <item>
+                <widget class="QTextEdit" name="descriptionText">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
              <widget class="QWidget" name="tab_6">
               <attribute name="title">
-               <string>new</string>
+               <string>✚</string>
               </attribute>
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <item>
@@ -357,23 +374,6 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_7">
-              <attribute name="title">
-               <string>installed</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
-               <item>
-                <widget class="QComboBox" name="filtersComboBox"/>
-               </item>
-               <item>
-                <widget class="QTextEdit" name="descriptionText">
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
             </widget>
            </item>
           </layout>
@@ -390,23 +390,85 @@
              </property>
              <widget class="QWidget" name="tab_3">
               <attribute name="title">
-               <string>Identi.ca</string>
+               <string>  ⚫  </string>
               </attribute>
               <layout class="QVBoxLayout" name="verticalLayout_2">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <widget class="QListWidget" name="accountList">
+                 <property name="viewMode">
+                  <enum>QListView::ListMode</enum>
+                 </property>
+                 <property name="uniformItemSizes">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
                  <item>
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>identicaid</string>
+                  <spacer name="horizontalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
                    </property>
-                   <property name="buddy">
-                    <cstring>identicaidEdit</cstring>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="removeaccountButton">
+                   <property name="text">
+                    <string>remove</string>
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QLineEdit" name="identicaidEdit"/>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="tab_4">
+              <attribute name="title">
+               <string>✚</string>
+              </attribute>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QGridLayout" name="gridLayout">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>service</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>account</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="accountidEdit"/>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QComboBox" name="accountserviceComboBox">
+                   <property name="currentIndex">
+                    <number>-1</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="accounturlLabel">
+                   <property name="text">
+                    <string>url</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="accounturlEdit"/>
                  </item>
                 </layout>
                </item>
@@ -423,42 +485,29 @@
                  </property>
                 </spacer>
                </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="tab_4">
-              <attribute name="title">
-               <string>Twitter</string>
-              </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_3">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
                  <item>
-                  <widget class="QLabel" name="label_2">
+                  <widget class="QPushButton" name="addaccountButton">
                    <property name="text">
-                    <string>twitterid</string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>twitteridEdit</cstring>
+                    <string>add</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="twitteridEdit"/>
+                  <spacer name="horizontalSpacer_5">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                 </layout>
-               </item>
-               <item>
-                <spacer name="verticalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </widget>
@@ -486,15 +535,15 @@
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_11">
-                 <item>
+                <layout class="QGridLayout" name="gridLayout_2">
+                 <item row="0" column="0">
                   <widget class="QLabel" name="label_3">
                    <property name="text">
                     <string>foreground</string>
                    </property>
                   </widget>
                  </item>
-                 <item>
+                 <item row="0" column="1">
                   <widget class="QPushButton" name="fgcolorButton">
                    <property name="autoFillBackground">
                     <bool>false</bool>
@@ -504,11 +553,7 @@
                    </property>
                   </widget>
                  </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_12">
-                 <item>
+                 <item row="1" column="0">
                   <widget class="QLabel" name="label_4">
                    <property name="text">
                     <string>background</string>
@@ -518,7 +563,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item>
+                 <item row="1" column="1">
                   <widget class="QPushButton" name="bgcolorButton">
                    <property name="text">
                     <string/>
@@ -528,7 +573,7 @@
                 </layout>
                </item>
                <item>
-                <spacer name="verticalSpacer_5">
+                <spacer name="verticalSpacer_4">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
                  </property>

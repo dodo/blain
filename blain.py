@@ -10,6 +10,7 @@ from PyQt4.Qt import QApplication, pyqtSignal
 from inc.main import Window
 from inc.database import Databaser
 from inc.preference import Preferencer
+from inc.accounts import Accounter
 from inc.update import Updater
 from inc.icons import Iconer
 from inc.filters import Filterer
@@ -38,11 +39,11 @@ class Blain(QApplication):
 
     logStatus = pyqtSignal(str)
     killThread = pyqtSignal(str)
-    addMessage = pyqtSignal(str, dict)
-    updateUser = pyqtSignal(str, str)
-    updateGroup = pyqtSignal(str)
-    updateGroups = pyqtSignal(str, bool)
-    updateMicroblogging = pyqtSignal(str, str, bool)
+    addMessage = pyqtSignal(dict)
+    updateUser = pyqtSignal(str, str, str)
+    updateGroup = pyqtSignal(str, str, str)
+    updateGroups = pyqtSignal(str, str, bool)
+    updateFriends = pyqtSignal(str, str, bool)
 
     def __init__(self):
         print "loading ..."
@@ -53,15 +54,17 @@ class Blain(QApplication):
         self.db           =    Databaser(self)
         self.preferences  =  Preferencer(self)
         self.filters      =     Filterer(self)
-        self.updates      =      Updater(self)
         self.icons        =       Iconer(self)
+        self.accounts     =    Accounter(self)
+        self.updates      =      Updater(self)
         self.threads      =     Threader(self)
         self.reader       =       Reader(self)
         self.notifier     =     Notifier(self)
 
         controllers = [self.window, self.db, self.preferences,
-                       self.filters, self.updates, self.icons,
-                       self.threads, self.reader, self.notifier]
+                       self.filters, self.accounts, self.updates,
+                       self.icons, self.threads, self.reader,
+                       self.notifier]
 
         for controller in controllers:
             controller.setup()

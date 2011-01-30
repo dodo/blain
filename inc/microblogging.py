@@ -50,20 +50,11 @@ class UrlOpener(urllib.FancyURLopener):
         return ("user", "password")
 ###
 
-urls = {
-        'identica': {
-            'api': "http://identi.ca/api/",
-            'search': "http://identi.ca/api/search.json",
-            },
-        'twitter': {
-            'api': "http://api.twitter.com/1/",
-            'search':"http://search.twitter.com/search.json",
-            },
-        'telecomix': {
-            'api': "http://status.telecomix.org/api/",
-            'search': "http://status.telecomix.org/api/search.json",
-            },
-        }
+# format: {<service>: {'api':<apiurl>, 'search':<searchapiurl>}}
+urls = {}
+
+def add_service(name, service):
+    urls[name] = service
 
 def available_services():
     return urls.keys()

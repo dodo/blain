@@ -54,21 +54,17 @@ class Iconer:
 
     def setup(self):
         st = self.app.preferences.settings
-        a = self.icons['identica'] = self.get_service_icon(
-            0, "identica", "http://identi.ca")
-        b = self.icons['twitter']  = self.get_service_icon(
-            1, "twitter", "http://twitter.com")
-        img = magnify_icons(a, b)
-        self.icons['twitteridentica'] = img[0]
-        self.icons['identicatwitter'] = img[1]
         if not st.contains("icon/dark"):
             st.setValue("icon/dark", True)
         self.update_window_icon()
         #self.update_tray() # by reader
 
 
-    def get_service_icon(self, id, name, url):
-        icon, st = None, self.app.preferences.settings
+    def get_service_icon(self, name, url):
+        key = "service/" + name
+        if key in self.icons:
+            return self.icons[key]
+        icon, st = None, self.app.accounts.settings
         if not st.contains('icon/'+name):
             icon = get_favicon(url)
             if icon:
@@ -81,7 +77,7 @@ class Iconer:
             icon = st.value('icon/'+name, None)
             if icon: icon = QIcon(icon)
         if icon:
-            self.app.preferences.ui.accountsTabWidget.setTabIcon(id, icon)
+            self.icons[key] = icon
         return icon
 
 
@@ -121,8 +117,23 @@ class Iconer:
 
 
     def do_service_icon_on_(self, msg, service):
-        if service in self.icons:
-            msg.serviceLabel.setPixmap(self.icons[service].pixmap(16,16))
+        services = self.app.accounts.get_services(service)
+        if len(services) == 0:
+            return # no service found - skip
+        elif len(services) == 1:
+            icon = self.icons["service/" + services[0]]
+        else:
+            key = "service/" + "".join(services[:2])
+            if key in self.icons:
+                icon = self.icons[key]
+            else:
+                a = self.icons["service/" + services[0]]
+                b = self.icons["service/" + services[1]]
+                img = magnify_icons(a, b)
+                self.icons["service/"+"".join(reversed(services[:2]))] = img[0]
+                icon = self.icons[key] = img[1]
+        if icon:
+            msg.serviceLabel.setPixmap(icon.pixmap(16,16))
 
 
     def do_avatar_on_(self, msg, imageinfo):

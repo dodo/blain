@@ -73,7 +73,7 @@ class Window:
         # TODO send message instead of printing it
         txt = self.ui.messageEdit.text()
         if txt != "":
-            self.app.addMessage.emit( "twitter", ####
+            self.app.addMessage.emit( ####
                 {'time':datetime.now(),'text':txt,'info':"test"})
             self.ui.messageEdit.setText("")
             self.app.updateMessageView() ####

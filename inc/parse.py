@@ -55,19 +55,6 @@ for k in rex:
 rex = drug(**rex)
 
 
-def services():
-    return {
-        'twitter': drug(
-            url = "http://twitter.com/",
-            parse = parse_twitter,
-        ),
-        'identica': drug(
-            url = "http://identi.ca/",
-            parse = parse_identica,
-        )
-}
-
-
 def _clean_url(url):
     if url:
         while "\/" in url:
@@ -140,15 +127,15 @@ def parse_text(text, link):
 
 
 
-def parse_twitter(post):
-    post['user']['profile_url'] = services['twitter'].url + post['user']['screen_name']
+def parse_twitter(url, post):
+    post['user']['profile_url'] = url + post['user']['screen_name']
     for k in ['profile_text_color', 'profile_background_color']:
         if post['user'][k]:
             post['user'][k] = "#" + post['user'][k]
     return post
 
 
-def parse_identica(post):
+def parse_identica(url, post):
     post['user']['profile_url'] = post['user']['statusnet_profile_url']
     return post
 
@@ -167,8 +154,9 @@ def parse_image(app, service, user, url):
     return (image, url)
 
 
-def parse_post(service, source_id, post):
-    _post = services[service].parse(post)
+def parse_post(account, source_id, post):
+    service = account.service
+    _post = services[account.type].parse(account.url, post)
     post = drug(**_post)
     post.user = drug(**post.user)
     post.author = drug(screen_name = post.user.screen_name,
@@ -179,7 +167,7 @@ def parse_post(service, source_id, post):
                        name        = post.user.name,
                        url         = post.user.url)
     if 'retweeted_status' in _post:
-        _repost = services[service].parse(post.retweeted_status)
+        _repost=services[account.type].parse(account.url, post.retweeted_status)
         repost = drug(**_repost)
         repost.user = drug(**repost.user)
         post.text = repost.text
@@ -192,7 +180,7 @@ def parse_post(service, source_id, post):
         post.author.url = repost.user.url
     return {
         'pid':post.id,
-        'text':parse_text(_clean_url(post.text), services[service].url),
+        'text':parse_text(_clean_url(post.text), account.url),
         'time':parse_date(post.created_at),
         'reply':post.in_reply_to_status_id,
         'plain':_clean_url(post.text),
@@ -200,6 +188,7 @@ def parse_post(service, source_id, post):
         'unread':True,
         'user_id':post.user.screen_name,
         'service':service,
+        'account':account.name,
         'user_url':_clean_url(post.user.url),
         'source_id':source_id,
         'user_name':post.user.name,
@@ -243,12 +232,15 @@ def pythonize_post(blob):
                 'user_name','user_fgcolor','user_bgcolor','user_profile_url',
                 'user_profile_image_url', 'author_name', 'author_id',
                 'source_id', 'author_profile_image_url', 'author_url',
-                'author_profile_url', 'replied_user',
+                'author_profile_url', 'replied_user', 'account',
                 'author_fgcolor', 'author_bgcolor']:
         if blob[k]:
             blob[k] = unicode(blob[k])
     return blob
 
 
-services = services()
+services = {
+    'twitter': drug(parse = parse_twitter),
+    'statusnet': drug(parse = parse_identica),
+}
 

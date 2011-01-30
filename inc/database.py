@@ -114,8 +114,8 @@ class Databaser:
         if not convs:
             post = Post.find().filter_by(pid = pid).one()
             if post.reply is not None:
-                service= "identica" if "identica" in post.service else "twitter"
-                self.build_conversation(service, post.__dict__)
+                account = self.app.accounts.get(post.service, post.account)
+                self.build_conversation(account, post.__dict__)
                 convs = Conversation.find().filter_by(pid = pid).all()
         for conv in convs:
             ids = list(map(int, conv.ids.split()))
@@ -123,11 +123,10 @@ class Databaser:
         return msgs
 
 
-    def build_conversation(self, service, previous):
+    def build_conversation(self, account, previous):
         if not previous: return # nothing to do
         previous = [drug(**previous)]
-        service = unicode(service)
-        #print "try to build conversation", previous[0].pid, "(%s)" % service
+        #print "try to build conversation",previous[0].pid,"(%s)"%account.service
         Post, Conversation = self.db.Post, self.db.Conversation
         while True:
             posts = Post.find().filter_by(pid = previous[-1].reply).all()
@@ -135,7 +134,7 @@ class Databaser:
                 previous.append(prepare_post(posts[0].__dict__))
             else:
                 try:
-                    status = api_call(service, 'statuses/user_timeline',
+                    status = api_call(account.service, 'statuses/user_timeline',
                         {'id': previous[-1].replied_user,
                          'max_id':previous[-1].reply,
                          'count': 1})
@@ -144,9 +143,9 @@ class Databaser:
                     print_exc()
                     break
                 if not status: break # nothing fetched or empty list
-                update = parse_post(service, "", status[0])
+                update = parse_post(account, "", status[0])
                 update['source_id'] = update['user_id']
-                #print service, "con", update['pid']
+                #print account.service, "con", update['pid']
                 update['by_conversation'] = True
                 Post(**update).add()
                 previous.append(drug(**update))
@@ -158,10 +157,8 @@ class Databaser:
         self.app.reader.update()
 
 
-    def addMessage(self, service, blob):
+    def addMessage(self, blob):
         blob = pythonize_post(blob)
-        #if not blob['by_conversation'] or blob['reply'] is not None:
-        #    self.build_conversation(service, blob)
         Post = self.db.Post
         if Post.find().filter_by(pid = blob['pid']).count() == 0:
             Post(**blob).add()

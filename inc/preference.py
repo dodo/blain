@@ -89,8 +89,6 @@ class Preferencer:
 
     def save(self):
         app, st, ui = self.app, self.settings, self.ui
-        st.setValue("account/twitter/id", ui.twitteridEdit.text())
-        st.setValue("account/identica/id", ui.identicaidEdit.text())
         st.setValue("icon/isdark", ui.darkradioButton.isChecked())
         st.setValue("color/messages/fg", self.fgcolor.name())
         st.setValue("color/messages/bg", self.bgcolor.name())
@@ -110,8 +108,6 @@ class Preferencer:
             self.app.palette().button().color().name()).toString())
         self.old = drug(fgcolor = self.fgcolor, bgcolor = self.bgcolor)
 
-        ui.identicaidEdit.setText(st.value("account/identica/id").toString())
-        ui.twitteridEdit.setText(st.value("account/twitter/id").toString())
         b = st.value("icon/isdark",True).toBool()
         ui.darkradioButton.setChecked(b)
         ui.lightradioButton.setChecked(not b)
