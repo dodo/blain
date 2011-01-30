@@ -135,7 +135,7 @@ def parse_twitter(url, post):
     return post
 
 
-def parse_identica(url, post):
+def parse_statusnet(url, post):
     post['user']['profile_url'] = post['user']['statusnet_profile_url']
     return post
 
@@ -241,6 +241,6 @@ def pythonize_post(blob):
 
 services = {
     'twitter': drug(parse = parse_twitter),
-    'statusnet': drug(parse = parse_identica),
+    'statusnet': drug(parse = parse_statusnet),
 }
 
