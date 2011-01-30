@@ -26,7 +26,7 @@ def get_favicon(url, path=None):
         global lxml
         if lxml is None:
             try:
-                import lxml as _lxml
+                from lxml import html as _lxml
                 lxml = _lxml
                 return True
             except:
@@ -44,11 +44,13 @@ def get_favicon(url, path=None):
             content = urllib2.urlopen(request).read(2048) # 2048 bytes should be enought for most of websites
         except(urllib2.HTTPError, urllib2.URLError):
             return None
-        icon_path = lxml.html.fromstring(x).xpath(
+        icon_path = lxml.fromstring(content).xpath(
             '//link[@rel="icon" or @rel="shortcut icon"]/@href'
         )
-        if icon_path:
-            return get_image(url + icon_path[:1])
+        for icon_url in icon_path:
+            icon = get_image(icon_url)
+            if icon is not None:
+                return icon
         return None
 
     def try_next():
