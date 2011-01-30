@@ -201,7 +201,7 @@ class Accounter:
             services.append(service)
             merged = merged[len(service):]
         # prefer statusnet
-        services.sort(key=lambda s:self.services[s] == "twitter" * 1)
+        services.sort(key=lambda s:(self.services[s] == "twitter") * 1)
         return services
 
 
