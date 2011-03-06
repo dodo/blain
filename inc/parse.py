@@ -222,7 +222,7 @@ def prepare_post(blob):
     post.info = '<a href="%s">%s</a> (<a href="%s">%s</a>)%s via %s on %s' % \
         (post.user_url, post.user_name, post.user_profile_url,
          post.user_id, repeatstr, post.source,
-         post.time.strftime("%a %d %b %Y %H:%M:%S"))
+         post.time.strftime(u"%a %d %b %Y %H:%M:%S"))
     return post
 
 
